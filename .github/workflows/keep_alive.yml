@@ -1,0 +1,15 @@
+name: Keep Alive
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # every hour
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Relay
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" https://cx-relay.streamlit.app/)
+          echo "Response: $status"
