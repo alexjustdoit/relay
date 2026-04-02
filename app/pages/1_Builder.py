@@ -183,7 +183,29 @@ def render_demo_selector(handoff_type: str):
             if st.button("Cancel", use_container_width=True):
                 st.rerun()
 
-    _, col_start, col_demo = st.columns([4, 1, 1])
+    @st.dialog("Change handoff type?")
+    def _confirm_change_type():
+        has_data = any(
+            isinstance(v, str) and v.strip()
+            for v in st.session_state.get("form_data", {}).values()
+        )
+        if has_data:
+            st.markdown("You have unsaved progress. Changing type will clear all fields.")
+        else:
+            st.markdown("Return to handoff type selection?")
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("Change type", type="primary", use_container_width=True):
+                _reset_to_type_selection()
+                st.rerun()
+        with c2:
+            if st.button("Cancel", use_container_width=True):
+                st.rerun()
+
+    _, col_change, col_start, col_demo = st.columns([2, 1.5, 1, 1])
+    with col_change:
+        if st.button("← Change Type", key=f"change_type_{handoff_type}", use_container_width=True):
+            _confirm_change_type()
     with col_start:
         if st.button("Start Over", key=f"start_over_{handoff_type}", use_container_width=True):
             _confirm_clear()
@@ -546,28 +568,6 @@ def _reset_to_type_selection():
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
-
-# Handle "New Handoff" sidebar button click while mid-flow
-if st.session_state.pop("_new_handoff_clicked", False) and st.session_state.get("handoff_type"):
-    form_data = st.session_state.get("form_data", {})
-    has_data = any(isinstance(v, str) and v.strip() for v in form_data.values())
-
-    if has_data:
-        @st.dialog("Start a new handoff?")
-        def _confirm_new_handoff():
-            st.markdown("You have unsaved progress. Starting fresh will clear all fields.")
-            c1, c2 = st.columns(2)
-            with c1:
-                if st.button("Start fresh", type="primary", use_container_width=True):
-                    _reset_to_type_selection()
-                    st.rerun()
-            with c2:
-                if st.button("Keep editing", use_container_width=True):
-                    st.rerun()
-        _confirm_new_handoff()
-    else:
-        _reset_to_type_selection()
-        st.rerun()
 
 handoff_type = st.session_state.get("handoff_type")
 
