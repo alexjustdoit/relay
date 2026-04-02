@@ -2,23 +2,29 @@
 Google OAuth 2.0 flow for Relay.
 
 Flow:
-  1. get_auth_url()       — build the Google authorization URL
-  2. exchange_code()      — exchange the ?code= param for tokens
+  1. get_auth_url()       — build the Google authorization URL (no PKCE)
+  2. exchange_code()      — exchange the ?code= param for tokens via direct POST
   3. load_tokens()        — load cached tokens from disk
   4. save_tokens()        — persist tokens to disk
   5. get_credentials()    — return valid google.oauth2.credentials.Credentials,
                             refreshing if needed
+
+Token exchange is done with a direct requests.post() instead of google-auth-oauthlib's
+Flow.fetch_token(), which adds PKCE automatically in newer versions. PKCE requires the
+code_verifier to survive the OAuth redirect, but Streamlit Community Cloud starts a fresh
+session on redirect — making the stored verifier unavailable.
 """
 import json
 import sys
 from pathlib import Path
+from urllib.parse import urlencode
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import requests
 import streamlit as st
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
-from google_auth_oauthlib.flow import Flow
 
 import config
 
@@ -27,41 +33,43 @@ SCOPES = [
     "https://www.googleapis.com/auth/documents",
 ]
 
-CLIENT_CONFIG = {
-    "web": {
-        "client_id": config.GOOGLE_CLIENT_ID,
-        "client_secret": config.GOOGLE_CLIENT_SECRET,
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token",
-        "redirect_uris": [config.GOOGLE_REDIRECT_URI],
-    }
-}
-
-
-def _make_flow() -> Flow:
-    flow = Flow.from_client_config(CLIENT_CONFIG, scopes=SCOPES)
-    flow.redirect_uri = config.GOOGLE_REDIRECT_URI
-    return flow
+_AUTH_URI = "https://accounts.google.com/o/oauth2/auth"
+_TOKEN_URI = "https://oauth2.googleapis.com/token"
 
 
 def get_auth_url() -> str:
-    flow = _make_flow()
-    auth_url, state = flow.authorization_url(
-        access_type="offline",
-        include_granted_scopes="true",
-        prompt="consent",
-    )
-    st.session_state["oauth_state"] = state
-    st.session_state["oauth_flow"] = flow  # preserve code_verifier for exchange
-    return auth_url
+    params = {
+        "client_id": config.GOOGLE_CLIENT_ID,
+        "redirect_uri": config.GOOGLE_REDIRECT_URI,
+        "response_type": "code",
+        "scope": " ".join(SCOPES),
+        "access_type": "offline",
+        "prompt": "consent",
+    }
+    return f"{_AUTH_URI}?{urlencode(params)}"
 
 
 def exchange_code(code: str) -> Credentials:
-    # Reuse the stored flow so the code_verifier from PKCE is intact
-    flow = st.session_state.pop("oauth_flow", None) or _make_flow()
-    flow.fetch_token(code=code)
-    creds = flow.credentials
+    resp = requests.post(_TOKEN_URI, data={
+        "client_id": config.GOOGLE_CLIENT_ID,
+        "client_secret": config.GOOGLE_CLIENT_SECRET,
+        "code": code,
+        "redirect_uri": config.GOOGLE_REDIRECT_URI,
+        "grant_type": "authorization_code",
+    })
+    resp.raise_for_status()
+    token_data = resp.json()
+
+    creds = Credentials(
+        token=token_data["access_token"],
+        refresh_token=token_data.get("refresh_token"),
+        token_uri=_TOKEN_URI,
+        client_id=config.GOOGLE_CLIENT_ID,
+        client_secret=config.GOOGLE_CLIENT_SECRET,
+        scopes=SCOPES,
+    )
     save_tokens(creds)
+    st.session_state["google_creds"] = creds
     return creds
 
 
@@ -71,13 +79,13 @@ def save_tokens(creds: Credentials):
         config.TOKEN_PATH.write_text(json.dumps({
             "token": creds.token,
             "refresh_token": creds.refresh_token,
-            "token_uri": creds.token_uri,
-            "client_id": creds.client_id,
-            "client_secret": creds.client_secret,
-            "scopes": list(creds.scopes) if creds.scopes else SCOPES,
+            "token_uri": _TOKEN_URI,
+            "client_id": config.GOOGLE_CLIENT_ID,
+            "client_secret": config.GOOGLE_CLIENT_SECRET,
+            "scopes": SCOPES,
         }))
     except OSError:
-        pass  # Ephemeral filesystem (e.g. Streamlit Community Cloud) — session state is the only store
+        pass  # Ephemeral filesystem (SCC) — session state is the only store
 
 
 def load_tokens() -> Credentials | None:
