@@ -104,24 +104,3 @@ relay/
 │   └── drive.py                # folder creation, Doc creation via Docs API
 └── config.py                   # reads from st.secrets (SCC) or .env (local)
 ```
-
----
-
-## Portfolio Talking Points
-
-**LLM engineering**
-- Two-stage LLM pipeline: cheap structured classification (gap detection) followed by quality narrative generation — different models sized to the task
-- `response_format: json_object` for gap detection guarantees parseable output without prompt-level JSON coercion
-- Streaming generation with real-time token rendering in Streamlit — output appears as it's written, not after a multi-second wait
-- Config layer reads from `st.secrets` (Streamlit Cloud) or `.env` (local) transparently — no environment-specific code paths in the application
-
-**Product and domain depth**
-- Field map reflects real handoff practice: commitments split into written, verbal, and functionality promises; red flags categorized by type (technical, relationship, commercial, adoption); stakeholders include technical savviness as a freeform field, not a dropdown
-- Gap detection runs before generation — surfaces what's missing while there's still time to fix it, rather than generating a thin document silently
-- Two modes (Sales→CS and TAM→TAM) with distinct field sets sharing a common structure — type-switching prompts a confirmation dialog if the form has been filled
-- AI "wow moment" is scoped specifically: the Suggested Onboarding Approach / First 30 Days section synthesizes inputs the form can't capture on its own
-
-**Engineering decisions**
-- Google Drive integration via full OAuth (not a service account) — the user's own Drive, not a shared app credential
-- Token persistence with graceful degradation: file cache locally, session state only on ephemeral cloud filesystems
-- `gdrive/` module named to avoid shadowing the `google` namespace package from google-auth
