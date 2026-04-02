@@ -13,6 +13,7 @@ from gdrive.auth import get_credentials
 from gdrive.drive import create_handoff_doc
 from llm.gap_detection import detect_gaps
 from llm.generation import stream_handoff
+from data.demos import SALES_TO_CS_DEMOS, TAM_TO_TAM_DEMOS
 
 st.markdown("""
 <style>
@@ -139,8 +140,22 @@ def render_red_flags(key_prefix: str, gaps: list):
 
 # ── Sales → CS form ────────────────────────────────────────────────────────────
 
+def render_demo_selector(handoff_type: str):
+    demos = SALES_TO_CS_DEMOS if handoff_type == "sales_to_cs" else TAM_TO_TAM_DEMOS
+    with st.expander("Load demo data"):
+        options = ["— select a demo —"] + list(demos.keys())
+        choice = st.selectbox("Demo scenario", options, key=f"demo_select_{handoff_type}", label_visibility="collapsed")
+        if choice != "— select a demo —":
+            if st.button("Load", type="primary", key=f"demo_load_{handoff_type}"):
+                st.session_state["form_data"] = dict(demos[choice])
+                st.session_state.pop("gaps", None)
+                st.session_state.pop("generated_output", None)
+                st.rerun()
+
+
 def render_sales_to_cs_form(gaps: list):
     st.markdown("## Sales → CS Handoff")
+    render_demo_selector("sales_to_cs")
     st.divider()
 
     st.subheader("Account Overview")
@@ -216,6 +231,7 @@ def render_sales_to_cs_form(gaps: list):
 
 def render_tam_to_tam_form(gaps: list):
     st.markdown("## TAM → TAM Handoff")
+    render_demo_selector("tam_to_tam")
     st.divider()
 
     st.subheader("Account Overview")
