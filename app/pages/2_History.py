@@ -9,11 +9,21 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import streamlit as st
 
 st.markdown("<style>[data-testid='stSidebarNav'],[data-testid='stSidebarNavItems'],[data-testid='stSidebarNavLink']{display:none!important}</style>", unsafe_allow_html=True)
+st.markdown("""
+<style>
+.main .block-container,
+.stMainBlockContainer,
+[data-testid="stMainBlockContainer"],
+[data-testid="stAppViewBlockContainer"] {
+    padding-top: 1.5rem !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 import config  # noqa: F401
 from data.store import load_history, delete_history_entry, clear_history
 
-st.title("History")
+st.markdown("## History")
 st.caption("Your last 50 generated handoffs. Persists across restarts when running locally; session-only on the hosted demo.")
 
 history = load_history()
