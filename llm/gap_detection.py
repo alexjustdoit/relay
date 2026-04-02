@@ -1,21 +1,15 @@
 """
 Gap detection — runs before generation.
-Uses gpt-5.4-nano to flag missing or thin fields.
+Uses gpt-5.4-nano (API) or Ollama (local) to flag missing or thin fields.
 Returns a list of gap dicts: {field, severity, message}
 """
 import json
-import openai
-import config
+import sys
+from pathlib import Path
 
-_CLIENT = None
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-
-def _client() -> openai.OpenAI:
-    global _CLIENT
-    if _CLIENT is None:
-        _CLIENT = openai.OpenAI(api_key=config.OPENAI_API_KEY)
-    return _CLIENT
-
+from llm import router
 
 SYSTEM = """You are a handoff quality reviewer. Given a partially filled handoff form, identify fields that are missing or too thin to be useful.
 
@@ -40,20 +34,32 @@ def detect_gaps(handoff_type: str, form_data: dict) -> list[dict]:
 Form data:
 {json.dumps(form_data, indent=2)}
 
-Identify any critical gaps or thin fields."""
+Identify any critical gaps or thin fields. Return a JSON array only."""
 
-    response = _client().chat.completions.create(
-        model=config.NANO_MODEL,
+    client = router.get_client()
+    model = router.gap_model()
+
+    kwargs = dict(
+        model=model,
         max_tokens=512,
-        response_format={"type": "json_object"},
         messages=[
-            {"role": "system", "content": SYSTEM + "\nWrap your array in {\"gaps\": [...]}"},
+            {"role": "system", "content": SYSTEM},
             {"role": "user", "content": prompt},
         ],
     )
 
+    # json_object mode works reliably with OpenAI; Ollama support varies by model
+    if not router.is_local():
+        kwargs["response_format"] = {"type": "json_object"}
+        kwargs["messages"][0]["content"] += "\nWrap your array in {\"gaps\": [...]}"
+
+    response = client.chat.completions.create(**kwargs)
+
     try:
-        data = json.loads(response.choices[0].message.content)
-        return data.get("gaps", data) if isinstance(data, dict) else data
+        text = response.choices[0].message.content
+        data = json.loads(text)
+        if isinstance(data, list):
+            return data
+        return data.get("gaps", [])
     except Exception:
         return []

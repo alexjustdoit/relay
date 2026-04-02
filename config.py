@@ -23,7 +23,10 @@ GOOGLE_CLIENT_ID: str = _secret("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET: str = _secret("GOOGLE_CLIENT_SECRET")
 GOOGLE_REDIRECT_URI: str = _secret("GOOGLE_REDIRECT_URI", "http://localhost:8501")
 
+# LLM
 NANO_MODEL: str = "gpt-5.4-nano"   # gap detection
 MINI_MODEL: str = "gpt-5.4-mini"   # generation
+OLLAMA_BASE_URL: str = _secret("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL: str = _secret("OLLAMA_MODEL", "llama3.1:8b")
 
 TOKEN_PATH: Path = Path.home() / ".relay" / "tokens.json"

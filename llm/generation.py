@@ -1,20 +1,14 @@
 """
-Handoff document generation — uses gpt-5.4-mini.
-Streams the output back to Streamlit.
+Handoff document generation.
+Uses gpt-5.4-mini (API) or Ollama (local). Streams output back to Streamlit.
 """
 import json
-import openai
-import config
+import sys
+from pathlib import Path
 
-_CLIENT = None
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-
-def _client() -> openai.OpenAI:
-    global _CLIENT
-    if _CLIENT is None:
-        _CLIENT = openai.OpenAI(api_key=config.OPENAI_API_KEY)
-    return _CLIENT
-
+from llm import router
 
 _SALES_TO_CS_SYSTEM = """You are writing a professional account handoff document from a Sales rep to a Customer Success Manager.
 
@@ -54,7 +48,7 @@ Write in a professional but direct tone. Be specific. If a field was left blank,
 
 def stream_handoff(handoff_type: str, form_data: dict):
     """
-    Generator that yields text chunks as they stream from OpenAI.
+    Generator that yields text chunks as they stream from the active provider.
     handoff_type: "sales_to_cs" or "tam_to_tam"
     """
     system = _SALES_TO_CS_SYSTEM if handoff_type == "sales_to_cs" else _TAM_TO_TAM_SYSTEM
@@ -65,8 +59,11 @@ def stream_handoff(handoff_type: str, form_data: dict):
 
 Write the handoff document now."""
 
-    stream = _client().chat.completions.create(
-        model=config.MINI_MODEL,
+    client = router.get_client()
+    model = router.gen_model()
+
+    stream = client.chat.completions.create(
+        model=model,
         max_tokens=2048,
         stream=True,
         messages=[

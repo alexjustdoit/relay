@@ -121,10 +121,11 @@ def home():
         st.markdown("Get a professional narrative document with an AI-contributed onboarding plan. Save to Google Drive or download as text.")
 
 
-builder_page = st.Page("pages/1_Builder.py", title="New Handoff")
 home_page = st.Page(home, title="Home", default=True)
+builder_page = st.Page("pages/1_Builder.py", title="New Handoff")
+tech_info_page = st.Page("pages/2_Technical_Info.py", title="Technical Info")
 
-pg = st.navigation([home_page, builder_page], position="hidden")
+pg = st.navigation([home_page, builder_page, tech_info_page], position="hidden")
 
 render_sidebar_header()
 
@@ -133,4 +134,4 @@ with st.sidebar:
     st.page_link(builder_page)
 
 pg.run()
-render_sidebar_footer()
+render_sidebar_footer(dev_pages=[tech_info_page])

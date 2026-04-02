@@ -58,13 +58,35 @@ def render_sidebar_header():
         st.divider()
 
 
-def render_sidebar_footer():
+def render_sidebar_footer(dev_pages=None):
+    import os
     from gdrive.auth import get_credentials, get_auth_url, revoke
 
     with st.sidebar:
         st.markdown('<div class="sidebar-footer-spacer"></div>', unsafe_allow_html=True)
         st.divider()
 
+        # LLM Provider toggle
+        st.subheader("LLM Provider")
+        use_local = st.toggle(
+            "Use Local LLM (Ollama)",
+            value=os.getenv("USE_LOCAL_LLM", "false").lower() == "true",
+            help="Toggle between free local Ollama and OpenAI API",
+        )
+        os.environ["USE_LOCAL_LLM"] = "true" if use_local else "false"
+
+        if use_local:
+            model = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
+            st.caption(f"Local mode · Free · {model}")
+        else:
+            if os.getenv("OPENAI_API_KEY"):
+                st.caption("✅ OpenAI key set")
+            else:
+                st.warning("Set OPENAI_API_KEY in .env")
+
+        st.divider()
+
+        # Google Drive connection
         creds = get_credentials()
         connected = creds is not None and not creds.expired
 
@@ -78,3 +100,10 @@ def render_sidebar_footer():
             st.caption("Connect to save handoffs as Google Docs")
             auth_url = get_auth_url()
             st.link_button("Connect Google Drive", auth_url, use_container_width=True)
+
+        # Developers section
+        if dev_pages:
+            st.divider()
+            with st.expander("Developers"):
+                for page in dev_pages:
+                    st.page_link(page)
