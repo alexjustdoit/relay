@@ -20,6 +20,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+st.markdown("<style>[data-testid='stSidebarNav'],[data-testid='stSidebarNavItems'],[data-testid='stSidebarNavLink']{display:none!important}</style>", unsafe_allow_html=True)
+
 _GLOBAL_CSS = """
 <style>
 .main .block-container,
