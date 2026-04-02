@@ -137,7 +137,9 @@ render_sidebar_header()
 
 with st.sidebar:
     st.page_link(home_page)
-    st.page_link(builder_page)
+    if st.button("New Handoff", key="sidebar_new_handoff", use_container_width=True):
+        st.session_state["_new_handoff_clicked"] = True
+        st.switch_page("pages/1_Builder.py")
     st.page_link(history_page)
 
 pg.run()

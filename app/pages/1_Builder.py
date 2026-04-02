@@ -535,7 +535,39 @@ def render_type_selection():
             st.rerun()
 
 
+# ── Helpers ────────────────────────────────────────────────────────────────────
+
+def _reset_to_type_selection():
+    clear_draft()
+    st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
+    st.session_state["form_data"] = {}
+    for _k in ("handoff_type", "generated_output", "gaps", "generating"):
+        st.session_state.pop(_k, None)
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
+
+# Handle "New Handoff" sidebar button click while mid-flow
+if st.session_state.pop("_new_handoff_clicked", False) and st.session_state.get("handoff_type"):
+    form_data = st.session_state.get("form_data", {})
+    has_data = any(isinstance(v, str) and v.strip() for v in form_data.values())
+
+    if has_data:
+        @st.dialog("Start a new handoff?")
+        def _confirm_new_handoff():
+            st.markdown("You have unsaved progress. Starting fresh will clear all fields.")
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("Start fresh", type="primary", use_container_width=True):
+                    _reset_to_type_selection()
+                    st.rerun()
+            with c2:
+                if st.button("Keep editing", use_container_width=True):
+                    st.rerun()
+        _confirm_new_handoff()
+    else:
+        _reset_to_type_selection()
+        st.rerun()
 
 handoff_type = st.session_state.get("handoff_type")
 
