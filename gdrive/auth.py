@@ -52,11 +52,13 @@ def get_auth_url() -> str:
         prompt="consent",
     )
     st.session_state["oauth_state"] = state
+    st.session_state["oauth_flow"] = flow  # preserve code_verifier for exchange
     return auth_url
 
 
 def exchange_code(code: str) -> Credentials:
-    flow = _make_flow()
+    # Reuse the stored flow so the code_verifier from PKCE is intact
+    flow = st.session_state.pop("oauth_flow", None) or _make_flow()
     flow.fetch_token(code=code)
     creds = flow.credentials
     save_tokens(creds)
