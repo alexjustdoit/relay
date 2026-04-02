@@ -93,9 +93,9 @@ def render_stakeholder_rows(key_prefix: str, gaps: list):
                 role = st.text_input("Role (e.g. Champion, Economic Buyer, Technical DRI)",
                                      value=row.get("role", ""), key=_key(f"{key_prefix}_sk_role_{i}"))
             with c2:
-                savviness = st.text_input("Technical Savviness", value=row.get("savviness", ""),
-                                          key=_key(f"{key_prefix}_sk_sav_{i}"),
-                                          placeholder="e.g. Deep Python/cloud background, not hands-on with infra")
+                savviness = st.text_area("Technical Savviness", value=row.get("savviness", ""),
+                                         key=_key(f"{key_prefix}_sk_sav_{i}"), height=70,
+                                         placeholder="e.g. Deep Python/cloud background, not hands-on with infra")
                 sentiment = st.selectbox("Sentiment", ["", "Champion", "Positive", "Neutral", "Skeptical", "Detractor"],
                                          index=["", "Champion", "Positive", "Neutral", "Skeptical", "Detractor"].index(row.get("sentiment", "")),
                                          key=_key(f"{key_prefix}_sk_sent_{i}"))
@@ -132,9 +132,9 @@ def render_red_flags(key_prefix: str, gaps: list):
                                index=([""] + categories).index(flag.get("category", "")) if flag.get("category", "") in ([""] + categories) else 0,
                                key=_key(f"{key_prefix}_flag_cat_{i}"))
         with c2:
-            desc = st.text_input("Description", value=flag.get("description", ""),
-                                 key=_key(f"{key_prefix}_flag_desc_{i}"),
-                                 placeholder="Be specific — what happened or could happen?")
+            desc = st.text_area("Description", value=flag.get("description", ""),
+                                key=_key(f"{key_prefix}_flag_desc_{i}"), height=80,
+                                placeholder="Be specific — what happened or could happen?")
         updated.append({"category": cat, "description": desc})
 
     col1, col2 = st.columns([1, 5])
@@ -242,17 +242,17 @@ def render_sales_to_cs_form(gaps: list):
 
     st.subheader("Why They Bought")
     _gap_hint(gaps, "pain_points")
-    v = st.text_area("Pain Points / Use Case", value=_fd("pain_points"), key=_key("s_pain_points"), height=100,
+    v = st.text_area("Pain Points / Use Case", value=_fd("pain_points"), key=_key("s_pain_points"), height=150,
                      placeholder="What problem were they trying to solve? Why now?")
     _save_fd("pain_points", v)
 
-    v = st.text_area("Success Criteria", value=_fd("success_criteria"), key=_key("s_success_criteria"), height=80,
+    v = st.text_area("Success Criteria", value=_fd("success_criteria"), key=_key("s_success_criteria"), height=120,
                      placeholder="How will they measure success in the first 90 days?")
     _save_fd("success_criteria", v)
     _gap_hint(gaps, "success_criteria")
 
-    v = st.text_input("Competitors Evaluated", value=_fd("competitors"), key=_key("s_competitors"),
-                      placeholder="e.g. Considered Competitor A and B, went with us because of X")
+    v = st.text_area("Competitors Evaluated", value=_fd("competitors"), key=_key("s_competitors"), height=70,
+                     placeholder="e.g. Considered Competitor A and B, went with us because of X")
     _save_fd("competitors", v)
 
     st.divider()
@@ -261,17 +261,17 @@ def render_sales_to_cs_form(gaps: list):
 
     st.subheader("Commitments & Promises")
     v = st.text_area("Written Commitments (in contract or email)", value=_fd("commitments_written"),
-                     key=_key("s_comm_written"), height=80,
+                     key=_key("s_comm_written"), height=120,
                      placeholder="e.g. Dedicated onboarding engineer for 60 days")
     _save_fd("commitments_written", v)
 
     v = st.text_area("Verbal / Unwritten Commitments", value=_fd("commitments_verbal"),
-                     key=_key("s_comm_verbal"), height=80,
+                     key=_key("s_comm_verbal"), height=120,
                      placeholder="Anything promised in calls that isn't in writing")
     _save_fd("commitments_verbal", v)
 
     v = st.text_area("Functionality Promises (things that don't exist yet)", value=_fd("commitments_functionality"),
-                     key=_key("s_comm_func"), height=80,
+                     key=_key("s_comm_func"), height=120,
                      placeholder="Features or capabilities promised that are on the roadmap or TBD")
     _save_fd("commitments_functionality", v)
     _gap_hint(gaps, "commitments")
@@ -281,13 +281,14 @@ def render_sales_to_cs_form(gaps: list):
     st.divider()
 
     st.subheader("Key Upcoming Dates")
-    v = st.text_area("Known Upcoming Dates", value=_fd("key_dates"), key=_key("s_key_dates"), height=80,
+    v = st.text_area("Known Upcoming Dates", value=_fd("key_dates"), key=_key("s_key_dates"), height=120,
+                     label_visibility="collapsed",
                      placeholder="e.g. Go-live target: May 1 · Exec review: June · SKO: August")
     _save_fd("key_dates", v)
     st.divider()
 
     st.subheader("Additional Notes")
-    v = st.text_area("Anything else the CSM should know?", value=_fd("misc_notes"), key=_key("s_misc_notes"), height=100)
+    v = st.text_area("Anything else the CSM should know?", value=_fd("misc_notes"), key=_key("s_misc_notes"), height=150)
     _save_fd("misc_notes", v)
 
 
@@ -388,14 +389,15 @@ def render_tam_to_tam_form(gaps: list):
     st.divider()
 
     st.subheader("Key Upcoming Dates")
-    v = st.text_area("Known Upcoming Dates", value=_fd("key_dates"), key=_key("t_key_dates"), height=80,
+    v = st.text_area("Known Upcoming Dates", value=_fd("key_dates"), key=_key("t_key_dates"), height=120,
+                     label_visibility="collapsed",
                      placeholder="e.g. Renewal: Jan 2027 · QBR: June · Internal exec review: Aug")
     _save_fd("key_dates", v)
     st.divider()
 
     st.subheader("Additional Notes")
     v = st.text_area("Relationship nuances, political landmines, or anything not captured above",
-                     value=_fd("misc_notes"), key=_key("t_misc_notes"), height=100)
+                     value=_fd("misc_notes"), key=_key("t_misc_notes"), height=150)
     _save_fd("misc_notes", v)
 
 
