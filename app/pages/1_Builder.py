@@ -144,15 +144,22 @@ def render_red_flags(key_prefix: str, gaps: list):
 
 def render_demo_selector(handoff_type: str):
     demos = SALES_TO_CS_DEMOS if handoff_type == "sales_to_cs" else TAM_TO_TAM_DEMOS
-    with st.expander("Load demo data"):
-        options = ["— select a demo —"] + list(demos.keys())
-        choice = st.selectbox("Demo scenario", options, key=f"demo_select_{handoff_type}", label_visibility="collapsed")
-        if choice != "— select a demo —":
-            if st.button("Load", type="primary", key=f"demo_load_{handoff_type}"):
-                st.session_state["form_data"] = dict(demos[choice])
+
+    @st.dialog("Choose Demo Context")
+    def _picker():
+        st.caption("Select a scenario to pre-fill the form.")
+        for name, data in demos.items():
+            if st.button(name, use_container_width=True):
+                st.session_state["form_data"] = dict(data)
                 st.session_state.pop("gaps", None)
                 st.session_state.pop("generated_output", None)
                 st.rerun()
+
+    _, col_demo = st.columns([6, 1])
+    with col_demo:
+        if st.button("Demo →", key=f"demo_btn_{handoff_type}", use_container_width=True,
+                     help="Pre-fill the form with a sample handoff"):
+            _picker()
 
 
 def render_sales_to_cs_form(gaps: list):
