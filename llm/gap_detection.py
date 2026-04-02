@@ -1,19 +1,19 @@
 """
 Gap detection — runs before generation.
-Uses Haiku to flag missing or thin fields.
+Uses gpt-5.4-nano to flag missing or thin fields.
 Returns a list of gap dicts: {field, severity, message}
 """
 import json
-import anthropic
+import openai
 import config
 
 _CLIENT = None
 
 
-def _client() -> anthropic.Anthropic:
+def _client() -> openai.OpenAI:
     global _CLIENT
     if _CLIENT is None:
-        _CLIENT = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+        _CLIENT = openai.OpenAI(api_key=config.OPENAI_API_KEY)
     return _CLIENT
 
 
@@ -42,14 +42,18 @@ Form data:
 
 Identify any critical gaps or thin fields."""
 
-    response = _client().messages.create(
-        model=config.HAIKU_MODEL,
+    response = _client().chat.completions.create(
+        model=config.NANO_MODEL,
         max_tokens=512,
-        system=SYSTEM,
-        messages=[{"role": "user", "content": prompt}],
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": SYSTEM + "\nWrap your array in {\"gaps\": [...]}"},
+            {"role": "user", "content": prompt},
+        ],
     )
 
     try:
-        return json.loads(response.content[0].text)
+        data = json.loads(response.choices[0].message.content)
+        return data.get("gaps", data) if isinstance(data, dict) else data
     except Exception:
         return []

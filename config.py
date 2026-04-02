@@ -18,12 +18,12 @@ def _secret(key: str, default: str = "") -> str:
         return os.getenv(key, default)
 
 
-ANTHROPIC_API_KEY: str = _secret("ANTHROPIC_API_KEY")
+OPENAI_API_KEY: str = _secret("OPENAI_API_KEY")
 GOOGLE_CLIENT_ID: str = _secret("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET: str = _secret("GOOGLE_CLIENT_SECRET")
 GOOGLE_REDIRECT_URI: str = _secret("GOOGLE_REDIRECT_URI", "http://localhost:8501")
 
-HAIKU_MODEL: str = "claude-haiku-4-5-20251001"
-SONNET_MODEL: str = "claude-sonnet-4-6"
+NANO_MODEL: str = "gpt-5.4-nano"   # gap detection
+MINI_MODEL: str = "gpt-5.4-mini"   # generation
 
 TOKEN_PATH: Path = Path.home() / ".relay" / "tokens.json"

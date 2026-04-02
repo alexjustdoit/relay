@@ -482,8 +482,8 @@ def render_action_bar(handoff_type: str):
             st.rerun()
     with col2:
         if st.button("Generate Handoff", type="primary", use_container_width=True):
-            if not config.ANTHROPIC_API_KEY:
-                st.error("Set ANTHROPIC_API_KEY in .env to generate handoffs.")
+            if not config.OPENAI_API_KEY:
+                st.error("Set OPENAI_API_KEY in .env to generate handoffs.")
             else:
                 form_data = st.session_state.get("form_data", {})
                 st.session_state["generated_output"] = ""

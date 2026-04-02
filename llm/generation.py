@@ -1,17 +1,18 @@
 """
-Handoff document generation — uses Sonnet.
+Handoff document generation — uses gpt-5.4-mini.
 Streams the output back to Streamlit.
 """
-import anthropic
+import json
+import openai
 import config
 
 _CLIENT = None
 
 
-def _client() -> anthropic.Anthropic:
+def _client() -> openai.OpenAI:
     global _CLIENT
     if _CLIENT is None:
-        _CLIENT = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+        _CLIENT = openai.OpenAI(api_key=config.OPENAI_API_KEY)
     return _CLIENT
 
 
@@ -53,10 +54,9 @@ Write in a professional but direct tone. Be specific. If a field was left blank,
 
 def stream_handoff(handoff_type: str, form_data: dict):
     """
-    Generator that yields text chunks as they stream from Claude.
+    Generator that yields text chunks as they stream from OpenAI.
     handoff_type: "sales_to_cs" or "tam_to_tam"
     """
-    import json
     system = _SALES_TO_CS_SYSTEM if handoff_type == "sales_to_cs" else _TAM_TO_TAM_SYSTEM
 
     prompt = f"""Here is the handoff form data:
@@ -65,11 +65,17 @@ def stream_handoff(handoff_type: str, form_data: dict):
 
 Write the handoff document now."""
 
-    with _client().messages.stream(
-        model=config.SONNET_MODEL,
+    stream = _client().chat.completions.create(
+        model=config.MINI_MODEL,
         max_tokens=2048,
-        system=system,
-        messages=[{"role": "user", "content": prompt}],
-    ) as stream:
-        for text in stream.text_stream:
-            yield text
+        stream=True,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt},
+        ],
+    )
+
+    for chunk in stream:
+        delta = chunk.choices[0].delta.content
+        if delta:
+            yield delta
