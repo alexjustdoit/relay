@@ -94,6 +94,12 @@ def render_sidebar_footer(dev_pages=None):
                 else:
                     st.warning("Set OPENAI_API_KEY in .env")
 
+        # Developers section
+        if dev_pages:
+            with st.expander("Developers"):
+                for page in dev_pages:
+                    st.page_link(page)
+
         st.divider()
 
         # Google Drive connection
@@ -110,10 +116,3 @@ def render_sidebar_footer(dev_pages=None):
             st.caption("Connect to save handoffs as Google Docs")
             auth_url = get_auth_url()
             st.link_button("Connect Google Drive", auth_url, use_container_width=True)
-
-        # Developers section
-        if dev_pages:
-            st.divider()
-            with st.expander("Developers"):
-                for page in dev_pages:
-                    st.page_link(page)
