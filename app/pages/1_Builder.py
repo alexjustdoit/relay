@@ -172,7 +172,7 @@ def render_demo_selector(handoff_type: str):
         st.markdown("All fields will be reset. This cannot be undone.")
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("Clear form", type="primary", use_container_width=True):
+            if st.button("Clear form", use_container_width=True):
                 clear_draft()
                 st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
                 st.session_state["form_data"] = {}
@@ -180,7 +180,7 @@ def render_demo_selector(handoff_type: str):
                     st.session_state.pop(_k, None)
                 st.rerun()
         with c2:
-            if st.button("Cancel", use_container_width=True):
+            if st.button("Cancel", type="primary", use_container_width=True):
                 st.rerun()
 
     @st.dialog("Change handoff type?")
@@ -195,11 +195,11 @@ def render_demo_selector(handoff_type: str):
             st.markdown("Return to handoff type selection?")
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("Change type", type="primary", use_container_width=True):
+            if st.button("Change type", use_container_width=True):
                 _reset_to_type_selection()
                 st.rerun()
         with c2:
-            if st.button("Cancel", use_container_width=True):
+            if st.button("Cancel", type="primary", use_container_width=True):
                 st.rerun()
 
     _, col_change, col_start, col_demo = st.columns([2, 1.5, 1, 1])
