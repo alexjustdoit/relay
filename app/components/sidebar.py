@@ -1,12 +1,16 @@
 """
 Sidebar for Relay — branding + Google Drive connection status.
 """
+import os
 import sys
 from pathlib import Path
 
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+import config
+from gdrive.auth import get_credentials, get_auth_url, revoke
 
 _BRANDING_HTML = """
 <div style="min-height: 130px;">
@@ -59,17 +63,13 @@ def render_sidebar_header():
 
 
 def render_sidebar_footer(dev_pages=None):
-    import os
-    from gdrive.auth import get_credentials, get_auth_url, revoke
-
     with st.sidebar:
         st.markdown('<div class="sidebar-footer-spacer"></div>', unsafe_allow_html=True)
         st.divider()
 
         # LLM Provider toggle
         st.subheader("LLM Provider")
-        from config import SCC_MODE
-        if SCC_MODE:
+        if config.SCC_MODE:
             st.toggle(
                 "Use Local LLM (Ollama)",
                 value=False,
