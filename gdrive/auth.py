@@ -57,7 +57,14 @@ def exchange_code(code: str) -> Credentials:
         "redirect_uri": config.GOOGLE_REDIRECT_URI,
         "grant_type": "authorization_code",
     })
-    resp.raise_for_status()
+    if not resp.ok:
+        try:
+            detail = resp.json()
+            error = detail.get("error", resp.status_code)
+            description = detail.get("error_description", "")
+            raise ValueError(f"{error}: {description}" if description else str(error))
+        except (KeyError, ValueError) as e:
+            raise ValueError(str(e)) from None
     token_data = resp.json()
 
     creds = Credentials(

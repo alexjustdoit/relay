@@ -56,7 +56,8 @@ def _handle_oauth_callback():
                 st.query_params.clear()
                 st.rerun()
             except Exception as e:
-                st.error(f"Google auth failed: {e}")
+                st.error(f"Google Drive connection failed: {e}")
+                st.caption(f"Redirect URI in use: `{config.GOOGLE_REDIRECT_URI}`")
                 st.query_params.clear()
 
 
