@@ -14,7 +14,7 @@ import config  # noqa: F401
 from data.store import load_history, delete_history_entry, clear_history
 
 st.title("History")
-st.caption("Your last 50 generated handoffs, saved locally.")
+st.caption("Your last 50 generated handoffs. Persists across restarts when running locally; session-only on the hosted demo.")
 
 history = load_history()
 
