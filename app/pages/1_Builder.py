@@ -154,6 +154,12 @@ def render_demo_selector(handoff_type: str):
         for name, data in demos.items():
             if st.button(name, use_container_width=True):
                 st.session_state["form_data"] = dict(data)
+                # Clear individual widget keys so Streamlit re-renders with
+                # the new values instead of cached widget state.
+                prefix = "s_" if handoff_type == "sales_to_cs" else "t_"
+                for k in list(st.session_state.keys()):
+                    if k.startswith(prefix):
+                        del st.session_state[k]
                 st.session_state.pop("gaps", None)
                 st.session_state.pop("generated_output", None)
                 st.rerun()
