@@ -68,21 +68,31 @@ def render_sidebar_footer(dev_pages=None):
 
         # LLM Provider toggle
         st.subheader("LLM Provider")
-        use_local = st.toggle(
-            "Use Local LLM (Ollama)",
-            value=os.getenv("USE_LOCAL_LLM", "false").lower() == "true",
-            help="Toggle between free local Ollama and OpenAI API",
-        )
-        os.environ["USE_LOCAL_LLM"] = "true" if use_local else "false"
-
-        if use_local:
-            model = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
-            st.caption(f"Local mode · Free · {model}")
+        from config import SCC_MODE
+        if SCC_MODE:
+            st.toggle(
+                "Use Local LLM (Ollama)",
+                value=False,
+                disabled=True,
+                help="Local Ollama is not available on the hosted demo — the app uses OpenAI automatically.",
+            )
+            st.caption("Demo uses OpenAI API · Local Ollama available when self-hosted")
         else:
-            if os.getenv("OPENAI_API_KEY"):
-                st.caption("✅ OpenAI key set")
+            use_local = st.toggle(
+                "Use Local LLM (Ollama)",
+                value=os.getenv("USE_LOCAL_LLM", "false").lower() == "true",
+                help="Toggle between free local Ollama and OpenAI API",
+            )
+            os.environ["USE_LOCAL_LLM"] = "true" if use_local else "false"
+
+            if use_local:
+                model = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
+                st.caption(f"Local mode · Free · {model}")
             else:
-                st.warning("Set OPENAI_API_KEY in .env")
+                if os.getenv("OPENAI_API_KEY"):
+                    st.caption("✅ OpenAI key set")
+                else:
+                    st.warning("Set OPENAI_API_KEY in .env")
 
         st.divider()
 

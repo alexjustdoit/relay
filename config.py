@@ -18,6 +18,15 @@ def _secret(key: str, default: str = "") -> str:
         return os.getenv(key, default)
 
 
+def _get_scc_mode() -> bool:
+    try:
+        import streamlit as st
+        return str(st.secrets.get("SCC_MODE", os.getenv("SCC_MODE", "false"))).lower() == "true"
+    except Exception:
+        return os.getenv("SCC_MODE", "false").lower() == "true"
+
+SCC_MODE: bool = _get_scc_mode()
+
 OPENAI_API_KEY: str = _secret("OPENAI_API_KEY")
 GOOGLE_CLIENT_ID: str = _secret("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET: str = _secret("GOOGLE_CLIENT_SECRET")
