@@ -167,14 +167,26 @@ def render_demo_selector(handoff_type: str):
                 st.session_state.pop("generated_output", None)
                 st.rerun()
 
+    @st.dialog("Clear form?")
+    def _confirm_clear():
+        st.markdown("All fields will be reset. This cannot be undone.")
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("Clear form", type="primary", use_container_width=True):
+                clear_draft()
+                st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
+                st.session_state["form_data"] = {}
+                for _k in ("generated_output", "gaps", "generating"):
+                    st.session_state.pop(_k, None)
+                st.rerun()
+        with c2:
+            if st.button("Cancel", use_container_width=True):
+                st.rerun()
+
     _, col_start, col_demo = st.columns([4, 1, 1])
     with col_start:
         if st.button("Start Over", key=f"start_over_{handoff_type}", use_container_width=True):
-            clear_draft()
-            st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
-            for _k in ("handoff_type", "form_data", "generated_output", "gaps", "generating"):
-                st.session_state.pop(_k, None)
-            st.rerun()
+            _confirm_clear()
     with col_demo:
         if st.button("Demo →", key=f"demo_btn_{handoff_type}", use_container_width=True,
                      help="Pre-fill the form with a sample handoff"):
