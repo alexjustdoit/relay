@@ -171,7 +171,8 @@ def render_demo_selector(handoff_type: str):
     with col_start:
         if st.button("Start Over", key=f"start_over_{handoff_type}", use_container_width=True):
             clear_draft()
-            for _k in ("handoff_type", "form_data", "generated_output", "gaps", "generating", "_form_version"):
+            st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
+            for _k in ("handoff_type", "form_data", "generated_output", "gaps", "generating"):
                 st.session_state.pop(_k, None)
             st.rerun()
     with col_demo:
@@ -497,6 +498,7 @@ def render_type_selection():
         """, unsafe_allow_html=True)
         st.markdown("")
         if st.button("Start Sales → CS", key="b_sales_to_cs", type="primary", use_container_width=True):
+            st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
             st.session_state["handoff_type"] = "sales_to_cs"
             st.session_state.pop("form_data", None)
             st.session_state.pop("generated_output", None)
@@ -513,6 +515,7 @@ def render_type_selection():
         """, unsafe_allow_html=True)
         st.markdown("")
         if st.button("Start TAM → TAM", key="b_tam_to_tam", type="primary", use_container_width=True):
+            st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
             st.session_state["handoff_type"] = "tam_to_tam"
             st.session_state.pop("form_data", None)
             st.session_state.pop("generated_output", None)
