@@ -19,6 +19,7 @@ import config
 DEFAULT_LOCAL_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
 NANO_MODEL = config.NANO_MODEL
 MINI_MODEL = config.MINI_MODEL
+HQ_MODEL   = config.HQ_MODEL
 
 
 def _ollama_url() -> str:
@@ -43,8 +44,14 @@ def gap_model() -> str:
     return DEFAULT_LOCAL_MODEL if is_local() else NANO_MODEL
 
 
+def use_hq_gen() -> bool:
+    return os.getenv("USE_HIGH_QUALITY_GEN", "false").lower() == "true"
+
+
 def gen_model() -> str:
-    return DEFAULT_LOCAL_MODEL if is_local() else MINI_MODEL
+    if is_local():
+        return DEFAULT_LOCAL_MODEL
+    return HQ_MODEL if use_hq_gen() else MINI_MODEL
 
 
 def provider_label() -> str:

@@ -24,9 +24,14 @@ st.subheader("LLM Provider Architecture")
 import pandas as pd
 
 provider_data = {
-    "Provider": ["Ollama (local)", "OpenAI gpt-5.4-nano", "OpenAI gpt-5.4-mini"],
-    "Cost": ["Free", "~$0.001/call", "~$0.003/call"],
-    "Use Case": ["Development / zero API cost", "Gap detection (structured output)", "Generation (narrative, streaming)"],
+    "Provider": ["Ollama (local)", "OpenAI gpt-5.4-nano", "OpenAI gpt-5.4-mini", "OpenAI gpt-5.4"],
+    "Cost": ["Free", "~$0.001/call", "~$0.003/call", "~$0.015/call"],
+    "Use Case": [
+        "Development / zero API cost",
+        "Gap detection (structured output) — always used when on API",
+        "Generation default — use during testing/development",
+        "Generation high-quality — use for demos and showcasing",
+    ],
 }
 st.dataframe(pd.DataFrame(provider_data), use_container_width=True, hide_index=True)
 
@@ -44,6 +49,32 @@ with col2:
     st.metric("Gap Detection", router.gap_model())
 with col3:
     st.metric("Generation", router.gen_model())
+
+st.divider()
+
+# ── Generation Quality Toggle ──────────────────────────────────────────────────
+
+st.subheader("Generation Quality")
+st.caption(
+    "Controls which model is used for handoff narrative generation. "
+    "**Leave off during testing** — mini is fast and cheap. "
+    "Switch to high-quality only when showcasing or demoing to others."
+)
+
+col_tog, col_info = st.columns([1, 3])
+with col_tog:
+    hq_on = router.use_hq_gen()
+    use_hq = st.toggle(
+        "High-quality generation",
+        value=hq_on,
+        help=f"Off: {config.MINI_MODEL} (~$0.003/call)  ·  On: {config.HQ_MODEL} (~$0.015/call)",
+    )
+    os.environ["USE_HIGH_QUALITY_GEN"] = "true" if use_hq else "false"
+with col_info:
+    if use_hq:
+        st.info(f"**{config.HQ_MODEL}** active — best narrative quality. Remember to turn off after demoing.")
+    else:
+        st.success(f"**{config.MINI_MODEL}** active — fast and cheap. Good for testing.")
 
 st.divider()
 
