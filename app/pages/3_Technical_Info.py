@@ -63,7 +63,7 @@ st.caption(
 
 col_tog, col_info = st.columns([1, 3])
 with col_tog:
-    hq_on = router.use_hq_gen()
+    hq_on = os.getenv("USE_HIGH_QUALITY_GEN", "false").lower() == "true"
     use_hq = st.toggle(
         "High-quality generation",
         value=hq_on,
