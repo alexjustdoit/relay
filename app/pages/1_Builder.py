@@ -408,14 +408,54 @@ def render_output_section(handoff_type: str):
         )
 
 
+# ── Type selection (shown when landing directly on Builder) ────────────────────
+
+def render_type_selection():
+    st.title("New Handoff")
+    st.markdown("Choose the type of handoff you're creating.")
+    st.markdown("")
+
+    col1, col2, col_spacer = st.columns([1, 1, 2])
+
+    with col1:
+        st.markdown("""
+        <div style="border:2px solid #333; border-radius:12px; padding:1.5rem; text-align:center; height:100%;">
+            <div style="font-size:2.5rem; margin-bottom:0.75rem;">🤝</div>
+            <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.4rem;">Sales → CS</div>
+            <div style="font-size:0.85rem; opacity:0.7; line-height:1.4;">Hand off a new customer from Sales to Customer Success</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("")
+        if st.button("Start Sales → CS", key="b_sales_to_cs", type="primary", use_container_width=True):
+            st.session_state["handoff_type"] = "sales_to_cs"
+            st.session_state.pop("form_data", None)
+            st.session_state.pop("generated_output", None)
+            st.session_state.pop("gaps", None)
+            st.rerun()
+
+    with col2:
+        st.markdown("""
+        <div style="border:2px solid #333; border-radius:12px; padding:1.5rem; text-align:center; height:100%;">
+            <div style="font-size:2.5rem; margin-bottom:0.75rem;">🔁</div>
+            <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.4rem;">TAM → TAM</div>
+            <div style="font-size:0.85rem; opacity:0.7; line-height:1.4;">Transfer an existing account between Technical Account Managers</div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("")
+        if st.button("Start TAM → TAM", key="b_tam_to_tam", type="primary", use_container_width=True):
+            st.session_state["handoff_type"] = "tam_to_tam"
+            st.session_state.pop("form_data", None)
+            st.session_state.pop("generated_output", None)
+            st.session_state.pop("gaps", None)
+            st.rerun()
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 handoff_type = st.session_state.get("handoff_type")
 
 if not handoff_type:
-    st.info("Choose a handoff type from the Home page to get started.")
-    if st.button("← Go to Home", type="primary"):
-        st.switch_page("streamlit_app.py")
+    render_type_selection()
 else:
     gaps = st.session_state.get("gaps", [])
     if handoff_type == "sales_to_cs":
