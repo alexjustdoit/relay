@@ -500,7 +500,7 @@ def render_type_selection():
         if st.button("Start Sales → CS", key="b_sales_to_cs", type="primary", use_container_width=True):
             st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
             st.session_state["handoff_type"] = "sales_to_cs"
-            st.session_state.pop("form_data", None)
+            st.session_state["form_data"] = {}
             st.session_state.pop("generated_output", None)
             st.session_state.pop("gaps", None)
             st.rerun()
@@ -517,7 +517,7 @@ def render_type_selection():
         if st.button("Start TAM → TAM", key="b_tam_to_tam", type="primary", use_container_width=True):
             st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
             st.session_state["handoff_type"] = "tam_to_tam"
-            st.session_state.pop("form_data", None)
+            st.session_state["form_data"] = {}
             st.session_state.pop("generated_output", None)
             st.session_state.pop("gaps", None)
             st.rerun()
@@ -528,15 +528,10 @@ def render_type_selection():
 handoff_type = st.session_state.get("handoff_type")
 
 if not handoff_type:
-    # Auto-restore last draft so a refresh brings you back to your work
-    draft = load_draft()
-    if draft and draft.get("handoff_type"):
-        st.session_state["handoff_type"] = draft["handoff_type"]
-        st.session_state["form_data"] = draft.get("form_data", {})
-        st.rerun()
     render_type_selection()
 else:
-    # Restore draft form data if session state was cleared (e.g. after refresh)
+    # Restore draft form data only after a genuine refresh (session state cleared
+    # mid-fill). Explicit new-handoff starts set form_data={} so this is skipped.
     if "form_data" not in st.session_state:
         draft = load_draft()
         if draft and draft.get("handoff_type") == handoff_type:

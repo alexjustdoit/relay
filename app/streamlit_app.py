@@ -89,7 +89,7 @@ def home():
         if st.button("Start Sales → CS", key="home_sales_to_cs", type="primary", use_container_width=True):
             st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
             st.session_state["handoff_type"] = "sales_to_cs"
-            st.session_state.pop("form_data", None)
+            st.session_state["form_data"] = {}
             st.session_state.pop("generated_output", None)
             st.session_state.pop("gaps", None)
             st.switch_page("pages/1_Builder.py")
@@ -106,7 +106,7 @@ def home():
         if st.button("Start TAM → TAM", key="home_tam_to_tam", type="primary", use_container_width=True):
             st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
             st.session_state["handoff_type"] = "tam_to_tam"
-            st.session_state.pop("form_data", None)
+            st.session_state["form_data"] = {}
             st.session_state.pop("generated_output", None)
             st.session_state.pop("gaps", None)
             st.switch_page("pages/1_Builder.py")
