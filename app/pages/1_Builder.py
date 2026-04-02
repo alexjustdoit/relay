@@ -16,6 +16,9 @@ from gdrive.drive import create_handoff_doc
 from llm.gap_detection import detect_gaps
 from llm.generation import stream_handoff
 from data.demos import SALES_TO_CS_DEMOS, TAM_TO_TAM_DEMOS
+import base64
+import streamlit.components.v1 as components
+from data.store import save_draft, load_draft, clear_draft, save_to_history
 
 st.markdown("""
 <style>
@@ -155,7 +158,13 @@ def render_demo_selector(handoff_type: str):
                 st.session_state.pop("generated_output", None)
                 st.rerun()
 
-    _, col_demo = st.columns([6, 1])
+    _, col_start, col_demo = st.columns([4, 1, 1])
+    with col_start:
+        if st.button("Start Over", key=f"start_over_{handoff_type}", use_container_width=True):
+            clear_draft()
+            for _k in ("handoff_type", "form_data", "generated_output", "gaps", "generating"):
+                st.session_state.pop(_k, None)
+            st.rerun()
     with col_demo:
         if st.button("Demo →", key=f"demo_btn_{handoff_type}", use_container_width=True,
                      help="Pre-fill the form with a sample handoff"):
@@ -379,6 +388,26 @@ def render_action_bar(handoff_type: str):
         st.caption("✅ No gaps found")
 
 
+# ── Clipboard helper ───────────────────────────────────────────────────────────
+
+def _clipboard_button(text: str, key: str) -> None:
+    b64 = base64.b64encode(text.encode()).decode()
+    components.html(
+        f"""<script>function _cp_{key}(){{
+            navigator.clipboard.writeText(atob('{b64}'));
+            var b=document.getElementById('{key}');
+            b.textContent='Copied!';
+            setTimeout(()=>{{b.textContent='Copy to Clipboard';}},2000);
+        }}</script>
+        <button id="{key}" onclick="_cp_{key}()" style="
+            background:transparent;border:1px solid rgba(128,128,128,0.4);
+            color:inherit;padding:0.35rem 0.65rem;border-radius:4px;
+            cursor:pointer;font-size:0.85rem;font-family:inherit;width:100%;
+        ">Copy to Clipboard</button>""",
+        height=42,
+    )
+
+
 # ── Output section ─────────────────────────────────────────────────────────────
 
 def render_output_section(handoff_type: str):
@@ -396,6 +425,8 @@ def render_output_section(handoff_type: str):
 
         st.session_state["generated_output"] = full_text
         st.session_state["generating"] = False
+        account_name = st.session_state.get("form_data", {}).get("account_name", "")
+        save_to_history(handoff_type, account_name, full_text)
         st.rerun()
 
     output = st.session_state.get("generated_output", "")
@@ -411,7 +442,7 @@ def render_output_section(handoff_type: str):
     type_label = "Sales→CS" if handoff_type == "sales_to_cs" else "TAM→TAM"
     doc_title = f"{account_name} — {type_label} Handoff"
 
-    col1, col2 = st.columns([1, 5])
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         creds = get_credentials()
         if creds and not creds.expired:
@@ -423,13 +454,16 @@ def render_output_section(handoff_type: str):
                     except Exception as e:
                         st.error(f"Failed to save: {e}")
         else:
-            st.info("Connect Google Drive in the sidebar to save this document.")
+            st.caption("Connect Google Drive in the sidebar to save.")
     with col2:
+        _clipboard_button(output, "clip_output")
+    with col3:
         st.download_button(
             label="Download .txt",
             data=output,
             file_name=f"{doc_title}.txt",
             mime="text/plain",
+            use_container_width=True,
         )
 
 
@@ -480,13 +514,28 @@ def render_type_selection():
 handoff_type = st.session_state.get("handoff_type")
 
 if not handoff_type:
+    # Auto-restore last draft so a refresh brings you back to your work
+    draft = load_draft()
+    if draft and draft.get("handoff_type"):
+        st.session_state["handoff_type"] = draft["handoff_type"]
+        st.session_state["form_data"] = draft.get("form_data", {})
+        st.rerun()
     render_type_selection()
 else:
+    # Restore draft form data if session state was cleared (e.g. after refresh)
+    if "form_data" not in st.session_state:
+        draft = load_draft()
+        if draft and draft.get("handoff_type") == handoff_type:
+            st.session_state["form_data"] = draft.get("form_data", {})
+
     gaps = st.session_state.get("gaps", [])
     if handoff_type == "sales_to_cs":
         render_sales_to_cs_form(gaps)
     else:
         render_tam_to_tam_form(gaps)
+
+    # Auto-save draft after every render
+    save_draft(handoff_type, st.session_state.get("form_data", {}))
 
     render_action_bar(handoff_type)
     render_output_section(handoff_type)
