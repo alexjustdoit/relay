@@ -415,8 +415,15 @@ def render_tam_to_tam_form(gaps: list):
 # ── Action bar ─────────────────────────────────────────────────────────────────
 
 def render_action_bar(handoff_type: str):
-    st.divider()
     gaps = st.session_state.get("gaps", [])
+    generated = bool(st.session_state.get("generated_output"))
+    gap_checked = st.session_state.get("gap_checked", False)
+
+    # Generated + gap checked → nothing left to show, skip divider too
+    if generated and gap_checked:
+        return
+
+    st.divider()
 
     # Auto-run gap check when triggered from the inline prompt
     if st.session_state.pop("_pending_gap_check", False):
@@ -438,11 +445,19 @@ def render_action_bar(handoff_type: str):
     elif "gaps" in st.session_state:
         st.caption("✅ No gaps found")
 
-    if st.session_state.get("generated_output"):
+    if generated:
+        # Gap not yet checked — keep the Check for Gaps button
+        col1, _ = st.columns([1.2, 4.8])
+        with col1:
+            if st.button("Check for Gaps", use_container_width=True):
+                with st.spinner("Checking..."):
+                    gaps = detect_gaps(handoff_type, st.session_state.get("form_data", {}))
+                    st.session_state["gaps"] = gaps
+                    st.session_state["gap_checked"] = True
+                st.rerun()
         return
 
     if st.session_state.get("_show_gap_prompt"):
-        # Replace the normal buttons with the confirmation row
         st.warning(
             "You haven't run a gap check yet. It only takes a second and helps "
             "catch missing context before generating."
