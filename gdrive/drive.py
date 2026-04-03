@@ -100,29 +100,40 @@ def create_handoff_doc(creds: Credentials, title: str, content: str, metadata: d
     doc_file = drive_service.files().create(body=file_meta, fields="id").execute()
     doc_id = doc_file["id"]
 
-    # Prepend header block from metadata
+    # Build header items with explicit colors, then combine with content items.
+    # Each item: {text, style, bullet, bold, color} where color is (r,g,b) floats 0-1 or None.
+    _ORANGE = (0.910, 0.573, 0.227)   # #E8923A
+    _GRAY   = (0.471, 0.471, 0.471)   # #787878
+
+    header_items = []
     if metadata:
-        header_lines = []
         account_name = metadata.get("account_name", "")
-        type_label = metadata.get("type_label", "")
-        from_name = metadata.get("from_name", "")
-        to_name = metadata.get("to_name", "")
+        type_label   = metadata.get("type_label", "")
+        from_name    = metadata.get("from_name", "")
+        to_name      = metadata.get("to_name", "")
 
         if account_name:
-            header_lines.append(f"# {account_name}")
-        if type_label:
-            header_lines.append(f"{type_label} Handoff")
-        from_to_parts = []
-        if from_name:
-            from_to_parts.append(f"From: {from_name}")
-        if to_name:
-            from_to_parts.append(f"To: {to_name}")
-        if from_to_parts:
-            header_lines.append("  \u2192  ".join(from_to_parts))
-        if header_lines:
-            content = "\n".join(header_lines) + "\n\n" + content
+            clean, bold = _parse_bold(account_name)
+            header_items.append({"text": clean, "style": "HEADING_1", "bullet": None, "bold": bold, "color": None})
 
-    parsed = _parse_lines(content)
+        if type_label:
+            header_items.append({"text": f"{type_label} Handoff", "style": "NORMAL_TEXT",
+                                  "bullet": None, "bold": [], "color": _ORANGE})
+
+        from_to_parts = []
+        if from_name: from_to_parts.append(f"From: {from_name}")
+        if to_name:   from_to_parts.append(f"To: {to_name}")
+        if from_to_parts:
+            header_items.append({"text": "  \u2192  ".join(from_to_parts), "style": "NORMAL_TEXT",
+                                  "bullet": None, "bold": [], "color": _GRAY})
+
+        # Blank separator line before body
+        header_items.append({"text": "", "style": "NORMAL_TEXT", "bullet": None, "bold": [], "color": None})
+
+    # Merge header with content items (content items have no color field)
+    parsed = header_items + [
+        {**item, "color": None} for item in _parse_lines(content)
+    ]
 
     # Pass 1: build all insertText requests, tracking character positions
     insert_requests = []
@@ -157,6 +168,21 @@ def create_handoff_doc(creds: Credentials, title: str, content: str, metadata: d
                 "createParagraphBullets": {
                     "range": {"startIndex": line_start, "endIndex": line_end},
                     "bulletPreset": item["bullet"],
+                }
+            })
+
+        # Text color (header lines only)
+        if item.get("color") and line_end > line_start + 1:
+            r, g, b = item["color"]
+            format_requests.append({
+                "updateTextStyle": {
+                    "range": {"startIndex": line_start, "endIndex": line_end - 1},
+                    "textStyle": {
+                        "foregroundColor": {
+                            "color": {"rgbColor": {"red": r, "green": g, "blue": b}}
+                        }
+                    },
+                    "fields": "foregroundColor",
                 }
             })
 
