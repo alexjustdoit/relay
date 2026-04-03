@@ -173,8 +173,9 @@ home_page = st.Page(home, title="Home", default=True)
 builder_page = st.Page("pages/1_Builder.py", title="New Handoff")
 history_page = st.Page("pages/2_History.py", title="History")
 tech_info_page = st.Page("pages/3_Technical_Info.py", title="Technical Info")
+eval_page = st.Page("pages/4_Eval.py", title="Model Eval")
 
-pg = st.navigation([home_page, builder_page, history_page, tech_info_page], position="hidden")
+pg = st.navigation([home_page, builder_page, history_page, tech_info_page, eval_page], position="hidden")
 
 render_sidebar_header()
 
@@ -184,4 +185,4 @@ with st.sidebar:
     st.page_link(history_page)
 
 pg.run()
-render_sidebar_footer(dev_pages=[tech_info_page])
+render_sidebar_footer(dev_pages=[tech_info_page, eval_page])

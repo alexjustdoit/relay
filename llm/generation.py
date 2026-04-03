@@ -83,6 +83,22 @@ def _stream_anthropic(system: str, prompt: str, model: str):
             yield text
 
 
+def generate_handoff_sync(handoff_type: str, form_data: dict, model: str, provider: str = "openai") -> str:
+    """
+    Non-streaming generation for evaluation purposes.
+    provider: "openai" | "anthropic"
+    """
+    system = _SALES_TO_CS_SYSTEM if handoff_type == "sales_to_cs" else _TAM_TO_TAM_SYSTEM
+    prompt = f"""Here is the handoff form data:
+
+{json.dumps(form_data, indent=2)}
+
+Write the handoff document now."""
+    if provider == "anthropic":
+        return "".join(_stream_anthropic(system, prompt, model))
+    return "".join(_stream_openai(system, prompt, model))
+
+
 def stream_handoff(handoff_type: str, form_data: dict):
     """
     Generator that yields text chunks as they stream from the active provider.
