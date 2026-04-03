@@ -6,6 +6,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.1.0] — 2026-04-02
+
+### Added
+- **PDF export** — download any handoff as a formatted PDF (Builder output + History page); uses `fpdf2`, no system dependencies
+- **Gap check prompt** — if a user clicks Generate without running a gap check first, a dialog asks whether to check first or generate anyway; tracks `gap_checked` state per session and clears it on Start Over, Change Type, and new handoff starts
+- **History per-entry downloads** — each History entry now has Download .txt, Download PDF, and Delete buttons inline
+
+### Fixed
+- **Gap detection `BadRequestError`** — GPT-5.x dropped `max_tokens` support; removed the parameter for the API path (Ollama still receives it); reverted gap model back to `gpt-5.4-nano`
+- **Browser blank mid-generation** — replaced manual chunk accumulation (`output_placeholder.markdown(full_text)`) with `st.write_stream`, which sends only deltas and prevents WebSocket overload
+- **Ghost empty element below output** — caused by `components.html` iframe from the clipboard button; removed clipboard button
+- **Download .txt broken on SCC** — special characters (`→`, `—`) in filenames broke SCC URL routing; filenames are now sanitized before use in download buttons
+- **Gap inline hints not showing** — `render_stakeholder_rows` and `render_red_flags` were never wired to call `_gap_hint`; added calls and switched to partial/substring field name matching (AI returns inconsistent casing and spacing)
+- **Collapsed sections with gap hints** — sections now auto-expand when they contain a gap hint
+- **Google Drive caption** — updated from "Connect Google Drive to save" to "Sign in with Google to export as a Google Doc" to avoid implying there's no other save option
+
+### Changed
+- History timestamps reformatted from raw ISO string to `M/D/YYYY · H:MM AM/PM`
+- Removed copy-to-clipboard button from output action bar
+
+---
+
 ## [1.0.0] — 2026-04-02
 
 Initial public release.
