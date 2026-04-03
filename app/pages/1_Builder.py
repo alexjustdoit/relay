@@ -581,7 +581,7 @@ def render_output_section(handoff_type: str):
                 with st.spinner("Saving to Google Drive..."):
                     try:
                         url = create_handoff_doc(creds, doc_title, output, metadata=metadata)
-                        st.success(f"Saved! [Open in Google Docs]({url})")
+                        st.success(f"Saved to your **Relay Handoffs** folder. [Open in Google Docs]({url})")
                     except Exception as e:
                         st.error(f"Failed to save: {e}")
         else:

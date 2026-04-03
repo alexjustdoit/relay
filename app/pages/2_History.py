@@ -75,7 +75,7 @@ for entry in history:
                     with st.spinner("Saving..."):
                         try:
                             url = create_handoff_doc(creds, doc_title, entry["output"], metadata=metadata)
-                            st.success(f"[Open in Google Docs]({url})")
+                            st.success(f"Saved to your **Relay Handoffs** folder. [Open in Google Docs]({url})")
                         except Exception as e:
                             st.error(f"Failed: {e}")
             else:
