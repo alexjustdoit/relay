@@ -419,11 +419,12 @@ def render_action_bar(handoff_type: str):
             st.session_state["gap_checked"] = True
         st.rerun()
 
-    # "Generate Anyway" in the dialog sets this flag so the dialog closes first,
-    # then generation starts on the same render pass without a second rerun.
+    # "Generate Anyway" in the dialog sets this flag. Two-step: first rerun
+    # dismisses the dialog cleanly, second rerun starts generation.
     if st.session_state.pop("_pending_generate", False):
         st.session_state["generated_output"] = ""
         st.session_state["generating"] = True
+        st.rerun()
 
     @st.dialog("Check for gaps first?")
     def _confirm_generate():
