@@ -416,11 +416,12 @@ def render_tam_to_tam_form(gaps: list):
 
 def render_action_bar(handoff_type: str):
     gaps = st.session_state.get("gaps", [])
+    generating = st.session_state.get("generating", False)
     generated = bool(st.session_state.get("generated_output"))
     gap_checked = st.session_state.get("gap_checked", False)
 
-    # Generated + gap checked → nothing left to show, skip divider too
-    if generated and gap_checked:
+    # Actively generating or (generated + gap checked) → nothing left to show, skip divider too
+    if generating or (generated and gap_checked):
         return
 
     st.divider()
