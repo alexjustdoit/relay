@@ -538,8 +538,8 @@ def render_output_section(handoff_type: str):
                 mime="application/pdf",
                 use_container_width=True,
             )
-        except Exception:
-            st.caption("PDF export unavailable.")
+        except Exception as e:
+            st.caption(f"PDF export unavailable: {e}")
 
 
 # ── Type selection (shown when landing directly on Builder) ────────────────────
