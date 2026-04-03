@@ -462,17 +462,14 @@ def render_output_section(handoff_type: str):
     if st.session_state.get("generating"):
         st.divider()
         st.subheader("Generated Handoff")
-        gen_container = st.empty()
         try:
-            with gen_container.container():
-                full_text = st.write_stream(
-                    stream_handoff(handoff_type, st.session_state.get("form_data", {}))
-                )
+            full_text = st.write_stream(
+                stream_handoff(handoff_type, st.session_state.get("form_data", {}))
+            )
         except Exception as e:
             st.error(f"Generation failed: {e}")
             st.session_state["generating"] = False
             return
-        gen_container.empty()
         st.session_state["generated_output"] = full_text
         st.session_state["generating"] = False
         account_name = st.session_state.get("form_data", {}).get("account_name", "")
