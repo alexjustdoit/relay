@@ -61,13 +61,20 @@ for entry in history:
         creds = get_credentials()
         gdrive_connected = creds is not None and not creds.expired
 
+        metadata = {
+            "account_name": entry.get("account_name", ""),
+            "type_label": type_label,
+            "from_name": entry.get("from_name", ""),
+            "to_name": entry.get("to_name", ""),
+        }
+
         col_gdrive, col_txt, col_pdf, col_del = st.columns([1, 1, 1, 1])
         with col_gdrive:
             if gdrive_connected:
                 if st.button("Save to Drive", key=f"gdrive_{entry['id']}", use_container_width=True, type="primary"):
                     with st.spinner("Saving..."):
                         try:
-                            url = create_handoff_doc(creds, doc_title, entry["output"])
+                            url = create_handoff_doc(creds, doc_title, entry["output"], metadata=metadata)
                             st.success(f"[Open in Google Docs]({url})")
                         except Exception as e:
                             st.error(f"Failed: {e}")
@@ -85,7 +92,7 @@ for entry in history:
         with col_pdf:
             try:
                 from app.pdf_export import generate_pdf
-                pdf_bytes = generate_pdf(entry["output"])
+                pdf_bytes = generate_pdf(entry["output"], metadata=metadata)
                 st.download_button(
                     label="Download PDF",
                     data=pdf_bytes,

@@ -80,10 +80,11 @@ def _parse_lines(content: str) -> list[dict]:
     return items
 
 
-def create_handoff_doc(creds: Credentials, title: str, content: str) -> str:
+def create_handoff_doc(creds: Credentials, title: str, content: str, metadata: dict | None = None) -> str:
     """
     Create a formatted Google Doc in the Relay Handoffs folder.
     Converts markdown to real Doc formatting: headings, bullets, bold.
+    metadata (optional): account_name, type_label, from_name, to_name — prepended as a header block.
     Returns the URL of the created doc.
     """
     folder_id = _get_or_create_folder(creds)
@@ -98,6 +99,28 @@ def create_handoff_doc(creds: Credentials, title: str, content: str) -> str:
     }
     doc_file = drive_service.files().create(body=file_meta, fields="id").execute()
     doc_id = doc_file["id"]
+
+    # Prepend header block from metadata
+    if metadata:
+        header_lines = []
+        account_name = metadata.get("account_name", "")
+        type_label = metadata.get("type_label", "")
+        from_name = metadata.get("from_name", "")
+        to_name = metadata.get("to_name", "")
+
+        if account_name:
+            header_lines.append(f"# {account_name}")
+        if type_label:
+            header_lines.append(f"{type_label} Handoff")
+        from_to_parts = []
+        if from_name:
+            from_to_parts.append(f"From: {from_name}")
+        if to_name:
+            from_to_parts.append(f"To: {to_name}")
+        if from_to_parts:
+            header_lines.append("  \u2192  ".join(from_to_parts))
+        if header_lines:
+            content = "\n".join(header_lines) + "\n\n" + content
 
     parsed = _parse_lines(content)
 

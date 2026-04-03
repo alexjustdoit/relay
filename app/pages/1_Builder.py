@@ -249,6 +249,16 @@ def render_sales_to_cs_form(gaps: list):
         v = st.text_input("Close Date", value=_fd("close_date"), key=_key("s_close_date"), placeholder="e.g. 2026-04-15")
         _save_fd("close_date", v)
 
+    c3, c4 = st.columns(2)
+    with c3:
+        v = st.text_input("Handed Off By (Sales Rep)", value=_fd("from_name"), key=_key("s_from_name"),
+                          placeholder="e.g. Alex Good")
+        _save_fd("from_name", v)
+    with c4:
+        v = st.text_input("Handed Off To (CSM)", value=_fd("to_name"), key=_key("s_to_name"),
+                          placeholder="e.g. Sarah Smith")
+        _save_fd("to_name", v)
+
     st.divider()
 
     st.subheader("Why They Bought")
@@ -343,6 +353,16 @@ def render_tam_to_tam_form(gaps: list):
     with c2:
         v = st.text_input("CSM Counterpart (if applicable)", value=_fd("csm_counterpart"), key=_key("t_csm"))
         _save_fd("csm_counterpart", v)
+
+    c3, c4 = st.columns(2)
+    with c3:
+        v = st.text_input("Handed Off By (Outgoing TAM)", value=_fd("from_name"), key=_key("t_from_name"),
+                          placeholder="e.g. Alex Good")
+        _save_fd("from_name", v)
+    with c4:
+        v = st.text_input("Handed Off To (Incoming TAM)", value=_fd("to_name"), key=_key("t_to_name"),
+                          placeholder="e.g. Sarah Smith")
+        _save_fd("to_name", v)
 
     st.divider()
 
@@ -518,8 +538,14 @@ def render_output_section(handoff_type: str):
             return
         st.session_state["generated_output"] = full_text
         st.session_state["generating"] = False
-        account_name = st.session_state.get("form_data", {}).get("account_name", "")
-        save_to_history(handoff_type, account_name, full_text)
+        form_data = st.session_state.get("form_data", {})
+        save_to_history(
+            handoff_type,
+            form_data.get("account_name", ""),
+            full_text,
+            from_name=form_data.get("from_name", ""),
+            to_name=form_data.get("to_name", ""),
+        )
         st.rerun()
 
     output = st.session_state.get("generated_output", "")
@@ -531,13 +557,21 @@ def render_output_section(handoff_type: str):
     st.markdown(output)
     st.divider()
 
-    account_name = st.session_state.get("form_data", {}).get("account_name", "Handoff")
-    type_label = "Sales→CS" if handoff_type == "sales_to_cs" else "TAM→TAM"
-    doc_title = f"{account_name} — {type_label} Handoff"
+    form_data = st.session_state.get("form_data", {})
+    account_name = form_data.get("account_name", "Handoff")
+    type_label = "Sales \u2192 CS" if handoff_type == "sales_to_cs" else "TAM \u2192 TAM"
+    doc_title = f"{account_name} \u2014 {type_label} Handoff"
 
     safe_title = doc_title
-    for ch in ("→", "—", "/", "\\", ":", "|", "?", "*", "<", ">", '"'):
+    for ch in ("\u2192", "\u2014", "/", "\\", ":", "|", "?", "*", "<", ">", '"'):
         safe_title = safe_title.replace(ch, "-")
+
+    metadata = {
+        "account_name": account_name,
+        "type_label": type_label,
+        "from_name": form_data.get("from_name", ""),
+        "to_name": form_data.get("to_name", ""),
+    }
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
@@ -546,7 +580,7 @@ def render_output_section(handoff_type: str):
             if st.button("Save to Google Drive", type="primary", use_container_width=True):
                 with st.spinner("Saving to Google Drive..."):
                     try:
-                        url = create_handoff_doc(creds, doc_title, output)
+                        url = create_handoff_doc(creds, doc_title, output, metadata=metadata)
                         st.success(f"Saved! [Open in Google Docs]({url})")
                     except Exception as e:
                         st.error(f"Failed to save: {e}")
@@ -562,7 +596,7 @@ def render_output_section(handoff_type: str):
         )
     with col3:
         try:
-            pdf_bytes = _generate_pdf(output)
+            pdf_bytes = _generate_pdf(output, metadata=metadata)
             st.download_button(
                 label="Download PDF",
                 data=pdf_bytes,

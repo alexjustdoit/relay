@@ -131,12 +131,15 @@ def _sync_to_drive(history: list) -> None:
             pass
 
 
-def save_to_history(handoff_type: str, account_name: str, output: str) -> None:
+def save_to_history(handoff_type: str, account_name: str, output: str,
+                    from_name: str = "", to_name: str = "") -> None:
     entry = {
         "id": str(uuid.uuid4()),
         "timestamp": datetime.now().isoformat(timespec="seconds"),
         "handoff_type": handoff_type,
         "account_name": account_name or "Unnamed Account",
+        "from_name": from_name,
+        "to_name": to_name,
         "output": output,
     }
     history = load_history()
