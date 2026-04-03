@@ -113,6 +113,24 @@ def has_draft() -> bool:
 
 # ── History ────────────────────────────────────────────────────────────────────
 
+def _drive_creds():
+    """Return Google credentials from session state if signed in, else None."""
+    creds = st.session_state.get("google_creds")
+    if creds and not creds.expired:
+        return creds
+    return None
+
+
+def _sync_to_drive(history: list) -> None:
+    creds = _drive_creds()
+    if creds:
+        try:
+            from gdrive.drive import save_history_to_drive
+            save_history_to_drive(creds, history)
+        except Exception:
+            pass
+
+
 def save_to_history(handoff_type: str, account_name: str, output: str) -> None:
     entry = {
         "id": str(uuid.uuid4()),
@@ -127,12 +145,24 @@ def save_to_history(handoff_type: str, account_name: str, output: str) -> None:
     st.session_state["_history"] = history
     _ls_write(_LS_HISTORY, history)
     _write(_HISTORY_FILE, history)
+    _sync_to_drive(history)
 
 
 def load_history() -> list:
     if "_history" in st.session_state:
         return st.session_state["_history"]
-    # Try localStorage (survives refresh on SCC), then file (local only)
+    # Try Drive (cross-device, requires sign-in), then localStorage, then file
+    creds = _drive_creds()
+    if creds:
+        try:
+            from gdrive.drive import load_history_from_drive
+            drive_data = load_history_from_drive(creds)
+            if isinstance(drive_data, list):
+                st.session_state["_history"] = drive_data
+                _ls_write(_LS_HISTORY, drive_data)
+                return drive_data
+        except Exception:
+            pass
     data = _ls_read(_LS_HISTORY) or _read(_HISTORY_FILE)
     if isinstance(data, list):
         st.session_state["_history"] = data
@@ -146,11 +176,13 @@ def delete_history_entry(entry_id: str) -> None:
     st.session_state["_history"] = history
     _ls_write(_LS_HISTORY, history)
     _write(_HISTORY_FILE, history)
+    _sync_to_drive(history)
 
 
 def clear_history() -> None:
     st.session_state["_history"] = []
     _ls_remove(_LS_HISTORY)
+    _sync_to_drive([])
     try:
         _HISTORY_FILE.unlink(missing_ok=True)
     except OSError:
