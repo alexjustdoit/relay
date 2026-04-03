@@ -20,7 +20,7 @@ DEFAULT_LOCAL_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
 NANO_MODEL  = config.NANO_MODEL
 MINI_MODEL  = config.MINI_MODEL
 HQ_MODEL    = config.HQ_MODEL
-GAP_MODEL   = "claude-haiku-4-5-20251001"  # Anthropic; used for gap detection on API
+GAP_MODEL   = config.NANO_MODEL  # gpt-5.4-nano; cheap structured task
 
 
 def _ollama_url() -> str:
