@@ -3,6 +3,7 @@ Relay — Handoff History
 """
 import sys
 from pathlib import Path
+from datetime import datetime
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -42,10 +43,27 @@ st.divider()
 
 for entry in history:
     type_label = "Sales → CS" if entry["handoff_type"] == "sales_to_cs" else "TAM → TAM"
-    header = f"**{entry['account_name']}** — {type_label} · {entry['timestamp']}"
+    try:
+        ts = datetime.fromisoformat(entry["timestamp"])
+        ts_display = ts.strftime("%-m/%-d/%Y · %-I:%M %p")
+    except Exception:
+        ts_display = entry["timestamp"]
+    header = f"**{entry['account_name']}** — {type_label} · {ts_display}"
     with st.expander(header):
         st.markdown(entry["output"])
         st.divider()
-        if st.button("Delete", key=f"del_{entry['id']}"):
-            delete_history_entry(entry["id"])
-            st.rerun()
+        col_dl, col_del = st.columns([1, 1])
+        with col_dl:
+            doc_title = f"{entry['account_name']} — {type_label} Handoff"
+            st.download_button(
+                label="Download .txt",
+                data=entry["output"],
+                file_name=f"{doc_title}.txt",
+                mime="text/plain",
+                key=f"dl_{entry['id']}",
+                use_container_width=True,
+            )
+        with col_del:
+            if st.button("Delete", key=f"del_{entry['id']}", use_container_width=True):
+                delete_history_entry(entry["id"])
+                st.rerun()
