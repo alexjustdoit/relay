@@ -58,24 +58,24 @@ st.divider()
 st.subheader("Generation Quality")
 st.caption(
     "Controls which model is used for handoff narrative generation. "
-    "**Leave off during testing** — mini is fast and cheap. "
-    "Switch to high-quality only when showcasing or demoing to others."
+    f"**Default: {config.HQ_MODEL}** — best output quality. "
+    f"Switch to {config.MINI_MODEL} to cut costs during testing."
 )
 
 col_tog, col_info = st.columns([1, 3])
 with col_tog:
-    hq_on = os.getenv("USE_HIGH_QUALITY_GEN", "false").lower() == "true"
+    hq_on = os.getenv("USE_HIGH_QUALITY_GEN", "true").lower() == "true"
     use_hq = st.toggle(
         "High-quality generation",
         value=hq_on,
-        help=f"Off: {config.MINI_MODEL} (~$0.009/call)  ·  On: {config.HQ_MODEL} (~$0.030/call)",
+        help=f"On: {config.HQ_MODEL} (~$0.030/call)  ·  Off: {config.MINI_MODEL} (~$0.009/call)",
     )
     os.environ["USE_HIGH_QUALITY_GEN"] = "true" if use_hq else "false"
 with col_info:
     if use_hq:
-        st.info(f"**{config.HQ_MODEL}** active — best narrative quality. Remember to turn off after demoing.")
+        st.success(f"**{config.HQ_MODEL}** active — default, best narrative quality.")
     else:
-        st.success(f"**{config.MINI_MODEL}** active — fast and cheap. Good for testing.")
+        st.info(f"**{config.MINI_MODEL}** active — testing mode, fast and cheap.")
 
 st.divider()
 
