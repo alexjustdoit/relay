@@ -16,8 +16,6 @@ from gdrive.drive import create_handoff_doc
 from llm.gap_detection import detect_gaps
 from llm.generation import stream_handoff
 from data.demos import SALES_TO_CS_DEMOS, TAM_TO_TAM_DEMOS
-import base64
-import streamlit.components.v1 as components
 from data.store import save_draft, load_draft, clear_draft, save_to_history
 
 st.markdown("""
@@ -436,24 +434,7 @@ def render_action_bar(handoff_type: str):
         st.caption("✅ No gaps found")
 
 
-# ── Clipboard helper ───────────────────────────────────────────────────────────
-
-def _clipboard_button(text: str, key: str) -> None:
-    b64 = base64.b64encode(text.encode()).decode()
-    components.html(
-        f"""<script>function _cp_{key}(){{
-            navigator.clipboard.writeText(atob('{b64}'));
-            var b=document.getElementById('{key}');
-            b.textContent='Copied!';
-            setTimeout(()=>{{b.textContent='Copy to Clipboard';}},2000);
-        }}</script>
-        <button id="{key}" onclick="_cp_{key}()" style="
-            background:transparent;border:1px solid rgba(128,128,128,0.4);
-            color:inherit;padding:0.35rem 0.65rem;border-radius:4px;
-            cursor:pointer;font-size:0.85rem;font-family:inherit;width:100%;
-        ">Copy to Clipboard</button>""",
-        height=42,
-    )
+from app.pdf_export import generate_pdf as _generate_pdf
 
 
 # ── Output section ─────────────────────────────────────────────────────────────
@@ -489,7 +470,9 @@ def render_output_section(handoff_type: str):
     type_label = "Sales→CS" if handoff_type == "sales_to_cs" else "TAM→TAM"
     doc_title = f"{account_name} — {type_label} Handoff"
 
-    col1, col2 = st.columns([1, 1])
+    safe_title = doc_title.replace("→", "-").replace("—", "-")
+
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
         creds = get_credentials()
         if creds and not creds.expired:
@@ -501,15 +484,27 @@ def render_output_section(handoff_type: str):
                     except Exception as e:
                         st.error(f"Failed to save: {e}")
         else:
-            st.caption("Connect Google Drive in the sidebar to save.")
+            st.caption("Sign in with Google to export as a Google Doc.")
     with col2:
         st.download_button(
             label="Download .txt",
             data=output,
-            file_name=f"{doc_title}.txt",
+            file_name=f"{safe_title}.txt",
             mime="text/plain",
             use_container_width=True,
         )
+    with col3:
+        try:
+            pdf_bytes = _generate_pdf(output)
+            st.download_button(
+                label="Download PDF",
+                data=pdf_bytes,
+                file_name=f"{safe_title}.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+            )
+        except Exception:
+            st.caption("PDF export unavailable.")
 
 
 # ── Type selection (shown when landing directly on Builder) ────────────────────

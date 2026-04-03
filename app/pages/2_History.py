@@ -52,17 +52,32 @@ for entry in history:
     with st.expander(header):
         st.markdown(entry["output"])
         st.divider()
-        col_dl, col_del = st.columns([1, 1])
-        with col_dl:
-            doc_title = f"{entry['account_name']} — {type_label} Handoff"
+        doc_title = f"{entry['account_name']} — {type_label} Handoff"
+        safe_title = doc_title.replace("→", "-").replace("—", "-")
+        col_txt, col_pdf, col_del = st.columns([1, 1, 1])
+        with col_txt:
             st.download_button(
                 label="Download .txt",
                 data=entry["output"],
-                file_name=f"{doc_title}.txt",
+                file_name=f"{safe_title}.txt",
                 mime="text/plain",
                 key=f"dl_{entry['id']}",
                 use_container_width=True,
             )
+        with col_pdf:
+            try:
+                from app.pdf_export import generate_pdf
+                pdf_bytes = generate_pdf(entry["output"])
+                st.download_button(
+                    label="Download PDF",
+                    data=pdf_bytes,
+                    file_name=f"{safe_title}.pdf",
+                    mime="application/pdf",
+                    key=f"pdf_{entry['id']}",
+                    use_container_width=True,
+                )
+            except Exception:
+                st.caption("PDF unavailable")
         with col_del:
             if st.button("Delete", key=f"del_{entry['id']}", use_container_width=True):
                 delete_history_entry(entry["id"])
