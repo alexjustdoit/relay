@@ -12,9 +12,9 @@ def generate_pdf(markdown_text: str) -> bytes:
         return s.encode("latin-1", "replace").decode("latin-1")
 
     pdf = FPDF()
-    pdf.set_margins(25, 20, 25)
+    pdf.set_margins(15, 15, 15)
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=20)
 
     for line in markdown_text.split("\n"):
         if line.startswith("## "):
