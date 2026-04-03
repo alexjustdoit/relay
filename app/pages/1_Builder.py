@@ -168,6 +168,7 @@ def render_demo_selector(handoff_type: str):
                 st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
                 st.session_state.pop("gaps", None)
                 st.session_state.pop("gap_checked", None)
+                st.session_state.pop("_show_gap_prompt", None)
                 st.session_state.pop("generated_output", None)
                 st.rerun()
 
@@ -180,7 +181,7 @@ def render_demo_selector(handoff_type: str):
                 clear_draft()
                 st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
                 st.session_state["form_data"] = {}
-                for _k in ("generated_output", "gaps", "gap_checked", "generating"):
+                for _k in ("generated_output", "gaps", "gap_checked", "generating", "_show_gap_prompt"):
                     st.session_state.pop(_k, None)
                 st.rerun()
         with c2:
@@ -419,28 +420,8 @@ def render_action_bar(handoff_type: str):
             st.session_state["gap_checked"] = True
         st.rerun()
 
-    col1, col2, col_spacer = st.columns([1.2, 1.8, 3])
-    with col1:
-        if st.button("Check for Gaps", use_container_width=True):
-            with st.spinner("Checking..."):
-                gaps = detect_gaps(handoff_type, st.session_state.get("form_data", {}))
-                st.session_state["gaps"] = gaps
-                st.session_state["gap_checked"] = True
-            st.rerun()
-    with col2:
-        if st.button("Generate Handoff", type="primary", use_container_width=True):
-            if not config.OPENAI_API_KEY:
-                st.error("Set OPENAI_API_KEY in .env to generate handoffs.")
-            elif not st.session_state.get("gap_checked"):
-                st.session_state["_show_gap_prompt"] = True
-                st.rerun()
-            else:
-                st.session_state["generated_output"] = ""
-                st.session_state["generating"] = True
-                st.rerun()
-
-    # Inline gap check prompt — avoids modal overlay staying open during streaming
-    if st.session_state.pop("_show_gap_prompt", False):
+    if st.session_state.get("_show_gap_prompt"):
+        # Replace the normal buttons with the confirmation row
         st.warning(
             "You haven't run a gap check yet. It only takes a second and helps "
             "catch missing context before generating."
@@ -448,14 +429,36 @@ def render_action_bar(handoff_type: str):
         pc1, pc2, _ = st.columns([1.2, 1.8, 3])
         with pc1:
             if st.button("Check for Gaps", key="_gap_prompt_check", use_container_width=True):
+                st.session_state.pop("_show_gap_prompt", None)
                 st.session_state["_pending_gap_check"] = True
                 st.rerun()
         with pc2:
-            if st.button("Generate Anyway", key="_gap_prompt_generate", type="primary", use_container_width=True):
+            if st.button("Generate Anyway →", key="_gap_prompt_generate", use_container_width=True):
+                st.session_state.pop("_show_gap_prompt", None)
                 st.session_state["gap_checked"] = True
                 st.session_state["generated_output"] = ""
                 st.session_state["generating"] = True
                 st.rerun()
+    else:
+        col1, col2, col_spacer = st.columns([1.2, 1.8, 3])
+        with col1:
+            if st.button("Check for Gaps", use_container_width=True):
+                with st.spinner("Checking..."):
+                    gaps = detect_gaps(handoff_type, st.session_state.get("form_data", {}))
+                    st.session_state["gaps"] = gaps
+                    st.session_state["gap_checked"] = True
+                st.rerun()
+        with col2:
+            if st.button("Generate Handoff", type="primary", use_container_width=True):
+                if not config.OPENAI_API_KEY:
+                    st.error("Set OPENAI_API_KEY in .env to generate handoffs.")
+                elif not st.session_state.get("gap_checked"):
+                    st.session_state["_show_gap_prompt"] = True
+                    st.rerun()
+                else:
+                    st.session_state["generated_output"] = ""
+                    st.session_state["generating"] = True
+                    st.rerun()
 
     if gaps:
         errors = [g for g in gaps if g["severity"] == "error"]
@@ -565,7 +568,7 @@ def render_type_selection():
             st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
             st.session_state["handoff_type"] = "sales_to_cs"
             st.session_state["form_data"] = {}
-            for _k in ("generated_output", "gaps", "gap_checked"):
+            for _k in ("generated_output", "gaps", "gap_checked", "_show_gap_prompt"):
                 st.session_state.pop(_k, None)
             st.rerun()
 
@@ -582,7 +585,7 @@ def render_type_selection():
             st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
             st.session_state["handoff_type"] = "tam_to_tam"
             st.session_state["form_data"] = {}
-            for _k in ("generated_output", "gaps", "gap_checked"):
+            for _k in ("generated_output", "gaps", "gap_checked", "_show_gap_prompt"):
                 st.session_state.pop(_k, None)
             st.rerun()
 
@@ -593,7 +596,7 @@ def _reset_to_type_selection():
     clear_draft()
     st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
     st.session_state["form_data"] = {}
-    for _k in ("handoff_type", "generated_output", "gaps", "gap_checked", "generating"):
+    for _k in ("handoff_type", "generated_output", "gaps", "gap_checked", "generating", "_show_gap_prompt"):
         st.session_state.pop(_k, None)
 
 
