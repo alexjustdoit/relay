@@ -46,7 +46,7 @@ def gap_model() -> str:
 
 
 def use_hq_gen() -> bool:
-    return os.getenv("USE_HIGH_QUALITY_GEN", "false").lower() == "true"
+    return os.getenv("USE_HIGH_QUALITY_GEN", "true").lower() == "true"
 
 
 def gen_model() -> str:
