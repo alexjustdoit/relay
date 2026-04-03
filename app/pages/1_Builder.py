@@ -167,6 +167,7 @@ def render_demo_selector(handoff_type: str):
                 # Streamlit to use value= instead of cached widget state.
                 st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
                 st.session_state.pop("gaps", None)
+                st.session_state.pop("gap_checked", None)
                 st.session_state.pop("generated_output", None)
                 st.rerun()
 
@@ -179,7 +180,7 @@ def render_demo_selector(handoff_type: str):
                 clear_draft()
                 st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
                 st.session_state["form_data"] = {}
-                for _k in ("generated_output", "gaps", "generating"):
+                for _k in ("generated_output", "gaps", "gap_checked", "generating"):
                     st.session_state.pop(_k, None)
                 st.rerun()
         with c2:
@@ -410,17 +411,46 @@ def render_action_bar(handoff_type: str):
     st.divider()
     gaps = st.session_state.get("gaps", [])
 
+    # Auto-run gap check when triggered from the "Check for Gaps" dialog button
+    if st.session_state.pop("_pending_gap_check", False):
+        with st.spinner("Checking..."):
+            gaps = detect_gaps(handoff_type, st.session_state.get("form_data", {}))
+            st.session_state["gaps"] = gaps
+            st.session_state["gap_checked"] = True
+        st.rerun()
+
+    @st.dialog("Check for gaps first?")
+    def _confirm_generate():
+        st.markdown(
+            "You haven't run a gap check yet. It only takes a second and helps "
+            "catch missing fields before generating."
+        )
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("Check for Gaps", type="primary", use_container_width=True):
+                st.session_state["_pending_gap_check"] = True
+                st.rerun()
+        with c2:
+            if st.button("Generate Anyway", use_container_width=True):
+                st.session_state["gap_checked"] = True
+                st.session_state["generated_output"] = ""
+                st.session_state["generating"] = True
+                st.rerun()
+
     col1, col2, col_spacer = st.columns([1.2, 1.8, 3])
     with col1:
         if st.button("Check for Gaps", use_container_width=True):
             with st.spinner("Checking..."):
                 gaps = detect_gaps(handoff_type, st.session_state.get("form_data", {}))
                 st.session_state["gaps"] = gaps
+                st.session_state["gap_checked"] = True
             st.rerun()
     with col2:
         if st.button("Generate Handoff", type="primary", use_container_width=True):
             if not config.OPENAI_API_KEY:
                 st.error("Set OPENAI_API_KEY in .env to generate handoffs.")
+            elif not st.session_state.get("gap_checked"):
+                _confirm_generate()
             else:
                 st.session_state["generated_output"] = ""
                 st.session_state["generating"] = True
@@ -534,8 +564,8 @@ def render_type_selection():
             st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
             st.session_state["handoff_type"] = "sales_to_cs"
             st.session_state["form_data"] = {}
-            st.session_state.pop("generated_output", None)
-            st.session_state.pop("gaps", None)
+            for _k in ("generated_output", "gaps", "gap_checked"):
+                st.session_state.pop(_k, None)
             st.rerun()
 
     with col2:
@@ -551,8 +581,8 @@ def render_type_selection():
             st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
             st.session_state["handoff_type"] = "tam_to_tam"
             st.session_state["form_data"] = {}
-            st.session_state.pop("generated_output", None)
-            st.session_state.pop("gaps", None)
+            for _k in ("generated_output", "gaps", "gap_checked"):
+                st.session_state.pop(_k, None)
             st.rerun()
 
 
@@ -562,7 +592,7 @@ def _reset_to_type_selection():
     clear_draft()
     st.session_state["_form_version"] = st.session_state.get("_form_version", 0) + 1
     st.session_state["form_data"] = {}
-    for _k in ("handoff_type", "generated_output", "gaps", "generating"):
+    for _k in ("handoff_type", "generated_output", "gaps", "gap_checked", "generating"):
         st.session_state.pop(_k, None)
 
 
