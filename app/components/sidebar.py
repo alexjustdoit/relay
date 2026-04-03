@@ -13,9 +13,9 @@ import config
 from gdrive.auth import get_credentials, get_auth_url, revoke
 
 _BRANDING_HTML = """
-<div style="min-height: 130px;">
-  <div style="display:flex; justify-content:center; padding: 0.75rem 0 0.5rem 0;">
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+<div style="min-height: 150px;">
+  <div style="display:flex; justify-content:center; padding: 0.75rem 0 0.6rem 0;">
+    <svg width="64" height="64" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M4 22 L18 22" stroke="#E8923A" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/>
       <path d="M12 15 L20 22 L12 29" stroke="#E8923A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>
       <path d="M24 22 L40 22" stroke="#E8923A" stroke-width="2.5" stroke-linecap="round"/>

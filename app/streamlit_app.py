@@ -8,14 +8,57 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
+from PIL import Image, ImageDraw
 
 import config  # noqa: F401 — loads .env
 from app.components.sidebar import render_sidebar_header, render_sidebar_footer
 from gdrive.auth import exchange_code
 
+
+def _make_favicon() -> Image.Image:
+    """
+    Generate the Relay logo as a PIL image for use as the browser favicon.
+    Dark rounded background ensures visibility in both light and dark browser themes.
+    """
+    size = 64
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    # Dark rounded background
+    draw.rounded_rectangle([0, 0, size - 1, size - 1], radius=14, fill=(26, 28, 36, 255))
+
+    # Scale viewBox (44x44) to fit inside the icon with padding
+    pad = 7
+    s = (size - 2 * pad) / 44
+
+    def sx(x): return int(pad + x * s)
+    def sy(y): return int(pad + y * s)
+
+    orange      = (232, 146, 58, 255)
+    orange_dim  = (232, 146, 58, int(255 * 0.45))
+    lw = max(2, round(2.5 * s))
+
+    # Left arrow tail + head (dimmed)
+    draw.line([(sx(4), sy(22)), (sx(18), sy(22))], fill=orange_dim, width=lw)
+    draw.line([(sx(12), sy(15)), (sx(20), sy(22))], fill=orange_dim, width=lw)
+    draw.line([(sx(20), sy(22)), (sx(12), sy(29))], fill=orange_dim, width=lw)
+
+    # Right arrow tail + head (full brightness)
+    draw.line([(sx(24), sy(22)), (sx(40), sy(22))], fill=orange, width=lw)
+    draw.line([(sx(32), sy(15)), (sx(40), sy(22))], fill=orange, width=lw)
+    draw.line([(sx(40), sy(22)), (sx(32), sy(29))], fill=orange, width=lw)
+
+    # Center dot
+    r = max(2, round(3.5 * s))
+    cx, cy = sx(22), sy(22)
+    draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=orange)
+
+    return img
+
+
 st.set_page_config(
     page_title="Relay",
-    page_icon="🔁",
+    page_icon=_make_favicon(),
     layout="wide",
     initial_sidebar_state="expanded",
 )
