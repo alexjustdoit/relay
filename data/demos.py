@@ -6,6 +6,8 @@ Each entry matches the form_data keys used by _fd() / _save_fd() in the builder.
 SALES_TO_CS_DEMOS = {
     "Meridian Analytics — Clean SaaS Deal": {
         "account_name": "Meridian Analytics",
+        "from_name": "Jordan K.",
+        "to_name": "Taylor M.",
         "product": "Professional · 50 seats",
         "arr": "$84,000",
         "close_date": "2026-04-01",
@@ -66,6 +68,8 @@ SALES_TO_CS_DEMOS = {
 
     "Apex Financial — Enterprise, High Complexity": {
         "account_name": "Apex Financial Group",
+        "from_name": "Marcus D.",
+        "to_name": "Priya S.",
         "product": "Enterprise · 200 seats",
         "arr": "$312,000",
         "close_date": "2026-03-28",
@@ -159,6 +163,8 @@ SALES_TO_CS_DEMOS = {
 TAM_TO_TAM_DEMOS = {
     "Cascade Systems — Healthy Account, Active Expansion": {
         "account_name": "Cascade Systems",
+        "from_name": "Ryan T.",
+        "to_name": "Keisha B.",
         "arr": "$156,000",
         "region": "West / Pacific Northwest",
         "renewal_date": "2027-02-01",
@@ -242,6 +248,8 @@ TAM_TO_TAM_DEMOS = {
 
     "Vertex Corp — At-Risk, Renewal in 8 Months": {
         "account_name": "Vertex Corporation",
+        "from_name": "Nadia C.",
+        "to_name": "David R.",
         "arr": "$228,000",
         "region": "Central / Midwest",
         "renewal_date": "2026-12-01",
