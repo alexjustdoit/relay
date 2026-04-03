@@ -16,6 +16,7 @@ from llm import router
 
 st.title("Technical Info")
 st.caption("Developer reference — provider config, Ollama status, and environment variables.")
+st.markdown("**Version:** 1.2.0")
 
 # ── LLM Provider Architecture ──────────────────────────────────────────────────
 
@@ -28,9 +29,9 @@ provider_data = {
     "Cost": ["Free", "~$0.0004/call", "~$0.009/call", "~$0.030/call"],
     "Use Case": [
         "Development / zero API cost",
-        "Gap detection — cheapest structured task, always used when on API",
-        "Generation default — fast and cheap for testing",
-        "Generation high-quality — best narrative quality for demos",
+        "Gap detection — always used when on API (cheap, structured JSON task)",
+        "Generation — default/testing mode",
+        "Generation — high-quality mode (toggle on Technical Info page)",
     ],
 }
 st.dataframe(pd.DataFrame(provider_data), use_container_width=True, hide_index=True)
@@ -75,6 +76,29 @@ with col_info:
         st.info(f"**{config.HQ_MODEL}** active — best narrative quality. Remember to turn off after demoing.")
     else:
         st.success(f"**{config.MINI_MODEL}** active — fast and cheap. Good for testing.")
+
+st.divider()
+
+# ── Google Drive ───────────────────────────────────────────────────────────────
+
+st.subheader("Google Drive")
+
+from gdrive.auth import get_credentials
+creds = get_credentials()
+gdrive_connected = creds is not None and not creds.expired
+
+col_gd1, col_gd2, col_gd3 = st.columns(3)
+with col_gd1:
+    st.metric("OAuth Status", "Connected" if gdrive_connected else "Not signed in")
+with col_gd2:
+    st.metric("Handoffs Folder", "Relay Handoffs")
+with col_gd3:
+    st.metric("History File", "relay_history.json")
+
+if gdrive_connected:
+    st.success("Google Drive connected — exports save to the Relay Handoffs folder; history syncs across sessions.")
+else:
+    st.info("Not signed in. Sign in via the sidebar to enable Drive export and cross-session history.")
 
 st.divider()
 
@@ -163,6 +187,12 @@ env_rows = [
         "Value": _mask(os.getenv("GOOGLE_CLIENT_ID")),
         "Default": "—",
         "Description": "Google OAuth client ID (Drive + Docs API)",
+    },
+    {
+        "Variable": "GOOGLE_CLIENT_SECRET",
+        "Value": _mask(os.getenv("GOOGLE_CLIENT_SECRET")),
+        "Default": "—",
+        "Description": "Google OAuth client secret (required alongside client ID)",
     },
     {
         "Variable": "GOOGLE_REDIRECT_URI",

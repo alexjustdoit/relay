@@ -6,6 +6,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.0] — 2026-04-03
+
+### Added
+- **Google Drive history persistence** — `relay_history.json` is saved to and loaded from the Relay Handoffs Drive folder when signed in; history now syncs across sessions and devices
+- **Save to Drive from History page** — each history entry now has a Save to Drive button alongside the existing download options
+- **Native Google Docs formatting** — exports now use the Docs API (two-pass batchUpdate) to produce real headings, bullet lists, and bold text instead of raw markdown
+- **Branded document header** — both PDF and Google Docs exports include an account name header, handoff type label (orange), and From→To participants (gray); PDF adds an orange accent bar at the top
+- **"Handed Off By" / "Handed Off To" fields** — added to both form types; stored in form data and history; used to populate export headers
+- **Model Eval page** — developer tool for side-by-side generation comparison across `claude-sonnet-4-6`, `gpt-5.4-mini`, and `gpt-5.4-nano` on any demo scenario
+- **Drive save confirmation** — success message now names the destination folder ("Saved to your Relay Handoffs folder")
+- **Demo seeds** — all four demo scenarios updated with `from_name` / `to_name` values
+
+### Fixed
+- **Action bar hides immediately on generate** — Check for Gaps and Generate Handoff buttons now disappear as soon as generation starts, not after the stream completes
+
+---
+
 ## [1.1.0] — 2026-04-02
 
 ### Added
@@ -66,6 +83,4 @@ Initial public release.
 
 ## Backlog (planned)
 
-- Google Drive history persistence — sync `relay_history.json` to Drive for cross-device access
-- Permanent model upgrade — switch default generation to `claude-sonnet-4-6` once evaluation is complete; remove toggle
-- Generation quality eval — side-by-side comparison of `claude-sonnet-4-6`, `gpt-5.4-mini`, and `gpt-5.4-nano` for handoff narrative quality
+- Permanent model upgrade — switch default generation to `claude-sonnet-4-6`; remove `USE_HIGH_QUALITY_GEN` toggle
