@@ -558,7 +558,7 @@ def render_type_selection():
 
     with col1:
         st.markdown("""
-        <div style="border:2px solid #333; border-radius:12px; padding:1.5rem; text-align:center; height:100%;">
+        <div style="border:2px solid #333; border-radius:12px; padding:1.5rem; text-align:center; min-height:200px; display:flex; flex-direction:column; justify-content:center;">
             <div style="font-size:2.5rem; margin-bottom:0.75rem;">🤝</div>
             <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.4rem;">Sales → CS</div>
             <div style="font-size:0.85rem; opacity:0.7; line-height:1.4;">Hand off a new customer from Sales to Customer Success</div>
@@ -575,8 +575,8 @@ def render_type_selection():
 
     with col2:
         st.markdown("""
-        <div style="border:2px solid #333; border-radius:12px; padding:1.5rem; text-align:center; height:100%;">
-            <div style="font-size:2.5rem; margin-bottom:0.75rem;">🔁</div>
+        <div style="border:2px solid #333; border-radius:12px; padding:1.5rem; text-align:center; min-height:200px; display:flex; flex-direction:column; justify-content:center;">
+            <div style="font-size:2.5rem; margin-bottom:0.75rem;">🔄</div>
             <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.4rem;">TAM → TAM</div>
             <div style="font-size:0.85rem; opacity:0.7; line-height:1.4;">Transfer an existing account between Technical Account Managers</div>
         </div>
