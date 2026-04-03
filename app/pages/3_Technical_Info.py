@@ -24,11 +24,11 @@ st.subheader("LLM Provider Architecture")
 import pandas as pd
 
 provider_data = {
-    "Provider": ["Ollama (local)", "OpenAI gpt-5.4-nano", "OpenAI gpt-5.4-mini", "Anthropic claude-sonnet-4-6"],
+    "Provider": ["Ollama (local)", "Anthropic claude-haiku-4-5", "OpenAI gpt-5.4-mini", "Anthropic claude-sonnet-4-6"],
     "Cost": ["Free", "~$0.001/call", "~$0.009/call", "~$0.030/call"],
     "Use Case": [
         "Development / zero API cost",
-        "Gap detection (structured output) — always used when on API",
+        "Gap detection — fast and cheap, always used when on API",
         "Generation default — fast and cheap for testing",
         "Generation high-quality — best narrative quality for demos",
     ],
@@ -138,13 +138,13 @@ env_rows = [
         "Variable": "OPENAI_API_KEY",
         "Value": _mask(os.getenv("OPENAI_API_KEY")),
         "Default": "—",
-        "Description": "Required for gap detection and testing-mode generation",
+        "Description": "Required for testing-mode generation (gpt-5.4-mini)",
     },
     {
         "Variable": "ANTHROPIC_API_KEY",
         "Value": _mask(os.getenv("ANTHROPIC_API_KEY")),
         "Default": "—",
-        "Description": "Required for high-quality generation (claude-sonnet-4-6)",
+        "Description": "Required for gap detection (haiku) and high-quality generation (sonnet)",
     },
     {
         "Variable": "OLLAMA_BASE_URL",

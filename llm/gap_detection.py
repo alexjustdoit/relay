@@ -1,6 +1,6 @@
 """
 Gap detection — runs before generation.
-Uses gpt-5.4-nano (API) or Ollama (local) to flag missing or thin fields.
+Uses claude-haiku-4-5 (Anthropic) or Ollama (local) to flag missing or thin fields.
 Returns a list of gap dicts: {field, severity, message}
 """
 import json
@@ -9,6 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import config
 from llm import router
 
 SYSTEM = """You are a handoff quality reviewer. Given a partially filled handoff form, identify fields that are missing or too thin to be useful.
@@ -21,6 +22,8 @@ Rules:
 - Only flag genuine gaps — don't flag optional fields that are intentionally empty
 - Return [] if the form looks complete
 """
+
+GAP_MODEL = "claude-haiku-4-5-20251001"
 
 
 def detect_gaps(handoff_type: str, form_data: dict) -> list[dict]:
@@ -36,26 +39,30 @@ Form data:
 
 Identify any critical gaps or thin fields. Return a JSON array only."""
 
-    client = router.get_client()
-    model = router.gap_model()
-
-    kwargs = dict(
-        model=model,
-        max_tokens=512,
-        messages=[
-            {"role": "system", "content": SYSTEM},
-            {"role": "user", "content": prompt},
-        ],
-    )
-
-    # Ollama: no response_format needed; rely on prompt instruction for both
     if router.is_local():
-        pass  # prompt already instructs JSON-only output
-
-    response = client.chat.completions.create(**kwargs)
+        # Ollama fallback via OpenAI-compatible client
+        client = router.get_client()
+        response = client.chat.completions.create(
+            model=router.gap_model(),
+            max_tokens=512,
+            messages=[
+                {"role": "system", "content": SYSTEM},
+                {"role": "user", "content": prompt},
+            ],
+        )
+        text = response.choices[0].message.content
+    else:
+        import anthropic
+        client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+        response = client.messages.create(
+            model=GAP_MODEL,
+            max_tokens=512,
+            system=SYSTEM,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = response.content[0].text
 
     try:
-        text = response.choices[0].message.content
         data = json.loads(text)
         if isinstance(data, list):
             return data

@@ -17,9 +17,10 @@ import openai
 import config
 
 DEFAULT_LOCAL_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
-NANO_MODEL = config.NANO_MODEL
-MINI_MODEL = config.MINI_MODEL
-HQ_MODEL   = config.HQ_MODEL
+NANO_MODEL  = config.NANO_MODEL
+MINI_MODEL  = config.MINI_MODEL
+HQ_MODEL    = config.HQ_MODEL
+GAP_MODEL   = "claude-haiku-4-5-20251001"  # Anthropic; used for gap detection on API
 
 
 def _ollama_url() -> str:
@@ -41,7 +42,7 @@ def get_client() -> openai.OpenAI:
 
 
 def gap_model() -> str:
-    return DEFAULT_LOCAL_MODEL if is_local() else NANO_MODEL
+    return DEFAULT_LOCAL_MODEL if is_local() else GAP_MODEL
 
 
 def use_hq_gen() -> bool:
