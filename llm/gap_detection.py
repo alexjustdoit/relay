@@ -48,10 +48,9 @@ Identify any critical gaps or thin fields. Return a JSON array only."""
         ],
     )
 
-    # json_object mode works reliably with OpenAI; Ollama support varies by model
-    if not router.is_local():
-        kwargs["response_format"] = {"type": "json_object"}
-        kwargs["messages"][0]["content"] += "\nWrap your array in {\"gaps\": [...]}"
+    # Ollama: no response_format needed; rely on prompt instruction for both
+    if router.is_local():
+        pass  # prompt already instructs JSON-only output
 
     response = client.chat.completions.create(**kwargs)
 
