@@ -23,6 +23,8 @@ st.markdown("""
 
 import config  # noqa: F401
 from data.store import load_history, delete_history_entry, clear_history
+from gdrive.auth import get_credentials
+from gdrive.drive import create_handoff_doc
 
 st.markdown("## History")
 st.caption("Your last 50 generated handoffs. Persists across restarts when running locally; session-only on the hosted demo.")
@@ -56,7 +58,21 @@ for entry in history:
         safe_title = doc_title
         for ch in ("→", "—", "/", "\\", ":", "|", "?", "*", "<", ">", '"'):
             safe_title = safe_title.replace(ch, "-")
-        col_txt, col_pdf, col_del = st.columns([1, 1, 1])
+        creds = get_credentials()
+        gdrive_connected = creds is not None and not creds.expired
+
+        col_gdrive, col_txt, col_pdf, col_del = st.columns([1, 1, 1, 1])
+        with col_gdrive:
+            if gdrive_connected:
+                if st.button("Save to Drive", key=f"gdrive_{entry['id']}", use_container_width=True, type="primary"):
+                    with st.spinner("Saving..."):
+                        try:
+                            url = create_handoff_doc(creds, doc_title, entry["output"])
+                            st.success(f"[Open in Google Docs]({url})")
+                        except Exception as e:
+                            st.error(f"Failed: {e}")
+            else:
+                st.caption("Sign in to save to Drive")
         with col_txt:
             st.download_button(
                 label="Download .txt",
