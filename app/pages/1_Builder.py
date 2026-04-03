@@ -489,7 +489,7 @@ def render_output_section(handoff_type: str):
     type_label = "Sales→CS" if handoff_type == "sales_to_cs" else "TAM→TAM"
     doc_title = f"{account_name} — {type_label} Handoff"
 
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2 = st.columns([1, 1])
     with col1:
         creds = get_credentials()
         if creds and not creds.expired:
@@ -503,8 +503,6 @@ def render_output_section(handoff_type: str):
         else:
             st.caption("Connect Google Drive in the sidebar to save.")
     with col2:
-        _clipboard_button(output, "clip_output")
-    with col3:
         st.download_button(
             label="Download .txt",
             data=output,
