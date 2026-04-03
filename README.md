@@ -16,7 +16,7 @@ Account handoffs are one of the highest-stakes moments in the customer lifecycle
 
 The problem isn't that people don't know what to write — it's that there's no structure that captures it all and no prompt to surface what's missing before the document gets handed off.
 
-This is a portfolio project targeting Solutions Architect and pre-sales engineering roles. It demonstrates domain fluency — the fields and workflow reflect what someone who has actually done TAM and SA work would care about — and practical LLM engineering: multi-provider routing, structured gap detection, streaming generation, and Google Drive integration via OAuth.
+This is a portfolio project targeting Solutions Architect, TAM, and pre-sales engineering roles. It demonstrates domain fluency — the fields and workflow reflect what someone who has actually done TAM and SA work would care about — and practical LLM engineering: multi-provider routing, structured gap detection, streaming generation, and Google Drive integration via OAuth.
 
 ---
 
