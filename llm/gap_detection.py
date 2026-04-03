@@ -13,9 +13,10 @@ from llm import router
 
 SYSTEM = """You are a handoff quality reviewer. Given a partially filled handoff form, identify fields that are missing or too thin to be useful.
 
-Return ONLY a JSON array. Each item: {"field": "<field name>", "severity": "error"|"warning", "message": "<short actionable message>"}
+Return ONLY a JSON array. Each item: {"field": "<exact JSON key from the form data>", "severity": "error"|"warning", "message": "<short actionable message>"}
 
 Rules:
+- Use the exact key name from the form data JSON (e.g. "pain_points" not "Pain Points", "stakeholders" not "Stakeholder Information")
 - "error": critically missing (recipient cannot do their job without it)
 - "warning": present but thin, vague, or likely important
 - Only flag genuine gaps — don't flag optional fields that are intentionally empty

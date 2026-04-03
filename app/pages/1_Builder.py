@@ -64,8 +64,10 @@ def _key(name: str) -> str:
 
 
 def _gap_hint(gaps: list[dict], field: str):
+    target = field.lower().replace(" ", "_")
     for g in gaps:
-        if g.get("field", "").lower().replace(" ", "_") == field.lower().replace(" ", "_"):
+        gfield = g.get("field", "").lower().replace(" ", "_").replace("-", "_")
+        if gfield == target or target in gfield or gfield in target:
             icon = "🔴" if g["severity"] == "error" else "🟡"
             css = "gap-error" if g["severity"] == "error" else "gap-warning"
             st.markdown(f'<span class="{css}">{icon} {g["message"]}</span>', unsafe_allow_html=True)
@@ -76,14 +78,16 @@ def _gap_hint(gaps: list[dict], field: str):
 
 def render_stakeholder_rows(key_prefix: str, gaps: list):
     st.markdown("**Stakeholders**")
+    _gap_hint(gaps, "stakeholders")
     if "stakeholders" not in st.session_state.get("form_data", {}):
         _save_fd("stakeholders", [{"name": "", "title": "", "role": "", "savviness": "", "sentiment": ""}])
 
     rows = _fd("stakeholders", [{"name": "", "title": "", "role": "", "savviness": "", "sentiment": ""}])
     updated = []
+    has_gap = any("stakeholder" in g.get("field", "").lower() for g in gaps)
 
     for i, row in enumerate(rows):
-        with st.expander(f"Stakeholder {i+1}" + (f" — {row['name']}" if row['name'] else ""), expanded=i == 0):
+        with st.expander(f"Stakeholder {i+1}" + (f" — {row['name']}" if row['name'] else ""), expanded=i == 0 or has_gap):
             c1, c2 = st.columns(2)
             with c1:
                 name = st.text_input("Name", value=row.get("name", ""), key=_key(f"{key_prefix}_sk_name_{i}"))
@@ -116,6 +120,7 @@ def render_stakeholder_rows(key_prefix: str, gaps: list):
 
 def render_red_flags(key_prefix: str, gaps: list):
     st.markdown("**Red Flags & Risks**")
+    _gap_hint(gaps, "red_flags")
     if "red_flags" not in st.session_state.get("form_data", {}):
         _save_fd("red_flags", [{"category": "", "description": ""}])
 
