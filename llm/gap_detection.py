@@ -38,26 +38,17 @@ Identify any critical gaps or thin fields. Return a JSON array only."""
 
     client = router.get_client()
 
+    kwargs: dict = {
+        "model": router.gap_model(),
+        "messages": [
+            {"role": "system", "content": SYSTEM},
+            {"role": "user", "content": prompt},
+        ],
+    }
     if router.is_local():
-        # Ollama uses OpenAI-compatible client with max_tokens
-        response = client.chat.completions.create(
-            model=router.gap_model(),
-            max_tokens=512,
-            messages=[
-                {"role": "system", "content": SYSTEM},
-                {"role": "user", "content": prompt},
-            ],
-        )
-    else:
-        # GPT-5.x requires max_completion_tokens instead of max_tokens
-        response = client.chat.completions.create(
-            model=router.gap_model(),
-            max_completion_tokens=512,
-            messages=[
-                {"role": "system", "content": SYSTEM},
-                {"role": "user", "content": prompt},
-            ],
-        )
+        kwargs["max_tokens"] = 512  # Ollama requires explicit limit
+
+    response = client.chat.completions.create(**kwargs)
 
     text = response.choices[0].message.content
 

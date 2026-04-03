@@ -53,15 +53,17 @@ Write in a professional but direct tone. Be specific. If a field was left blank,
 
 def _stream_openai(system: str, prompt: str, model: str):
     client = router.get_client()
-    stream = client.chat.completions.create(
-        model=model,
-        max_tokens=2048,
-        stream=True,
-        messages=[
+    kwargs: dict = {
+        "model": model,
+        "stream": True,
+        "messages": [
             {"role": "system", "content": system},
             {"role": "user", "content": prompt},
         ],
-    )
+    }
+    if router.is_local():
+        kwargs["max_tokens"] = 2048  # Ollama requires explicit limit
+    stream = client.chat.completions.create(**kwargs)
     for chunk in stream:
         delta = chunk.choices[0].delta.content
         if delta:
