@@ -190,10 +190,16 @@ def render_demo_selector(handoff_type: str):
 
     @st.dialog("Change handoff type?")
     def _confirm_change_type():
-        has_data = any(
-            isinstance(v, str) and v.strip()
-            for v in st.session_state.get("form_data", {}).values()
-        )
+        def _form_has_data(fd: dict) -> bool:
+            for v in fd.values():
+                if isinstance(v, str) and v.strip():
+                    return True
+                if isinstance(v, list):
+                    for item in v:
+                        if isinstance(item, dict) and any(isinstance(x, str) and x.strip() for x in item.values()):
+                            return True
+            return False
+        has_data = _form_has_data(st.session_state.get("form_data", {}))
         if has_data:
             st.markdown("You have unsaved progress. Changing type will clear all fields.")
         else:
@@ -512,7 +518,9 @@ def render_output_section(handoff_type: str):
     type_label = "Sales→CS" if handoff_type == "sales_to_cs" else "TAM→TAM"
     doc_title = f"{account_name} — {type_label} Handoff"
 
-    safe_title = doc_title.replace("→", "-").replace("—", "-")
+    safe_title = doc_title
+    for ch in ("→", "—", "/", "\\", ":", "|", "?", "*", "<", ">", '"'):
+        safe_title = safe_title.replace(ch, "-")
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:

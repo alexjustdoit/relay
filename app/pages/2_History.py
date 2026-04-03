@@ -53,7 +53,9 @@ for entry in history:
         st.markdown(entry["output"])
         st.divider()
         doc_title = f"{entry['account_name']} — {type_label} Handoff"
-        safe_title = doc_title.replace("→", "-").replace("—", "-")
+        safe_title = doc_title
+        for ch in ("→", "—", "/", "\\", ":", "|", "?", "*", "<", ">", '"'):
+            safe_title = safe_title.replace(ch, "-")
         col_txt, col_pdf, col_del = st.columns([1, 1, 1])
         with col_txt:
             st.download_button(
