@@ -24,8 +24,6 @@ def generate_pdf(markdown_text: str) -> bytes:
             "\u00b7": "-",    # middle dot
             "\u2713": "[x]",  # checkmark
             "\u2714": "[x]",  # checkmark
-            "\u00e9": "e",    # e acute
-            "\u00e0": "a",    # a grave
         }
         for char, replacement in replacements.items():
             s = s.replace(char, replacement)
@@ -41,6 +39,9 @@ def generate_pdf(markdown_text: str) -> bytes:
     w = pdf.epw
 
     for line in markdown_text.split("\n"):
+        # Always reset x to left margin — fpdf2 leaves x at right edge after multi_cell
+        pdf.set_x(pdf.l_margin)
+
         if line.startswith("# "):
             pdf.ln(2)
             pdf.set_font("Helvetica", "B", 16)
@@ -50,12 +51,10 @@ def generate_pdf(markdown_text: str) -> bytes:
             pdf.ln(4)
             pdf.set_font("Helvetica", "B", 12)
             pdf.multi_cell(w, 7, _safe(line[3:].strip()))
-            # Underline via a thin rule
+            pdf.set_x(pdf.l_margin)
             pdf.set_draw_color(80, 80, 80)
             pdf.set_line_width(0.3)
-            x = pdf.get_x()
-            y = pdf.get_y()
-            pdf.line(pdf.l_margin, y, pdf.l_margin + w, y)
+            pdf.line(pdf.l_margin, pdf.get_y(), pdf.l_margin + w, pdf.get_y())
             pdf.ln(3)
         elif line.startswith("### "):
             pdf.ln(2)
@@ -65,13 +64,7 @@ def generate_pdf(markdown_text: str) -> bytes:
         elif line.startswith("- ") or line.startswith("* "):
             pdf.set_font("Helvetica", "", 10)
             content = _safe(_strip_bold(line[2:].strip()))
-            # Indent bullet with a dash
-            pdf.set_x(pdf.l_margin + 3)
-            pdf.multi_cell(w - 3, 5.5, f"-  {content}")
-        elif line.startswith("**") and line.endswith("**") and len(line) > 4:
-            # Standalone bold line
-            pdf.set_font("Helvetica", "B", 10)
-            pdf.multi_cell(w, 5.5, _safe(line.strip("*")))
+            pdf.multi_cell(w, 5.5, f"-  {content}")
         elif not line.strip():
             pdf.ln(3)
         else:
