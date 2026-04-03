@@ -426,6 +426,18 @@ def render_action_bar(handoff_type: str):
             st.session_state["gap_checked"] = True
         st.rerun()
 
+    if gaps:
+        errors = [g for g in gaps if g["severity"] == "error"]
+        warnings = [g for g in gaps if g["severity"] == "warning"]
+        parts = []
+        if errors:
+            parts.append(f"🔴 {len(errors)} critical")
+        if warnings:
+            parts.append(f"🟡 {len(warnings)} warning{'s' if len(warnings) > 1 else ''}")
+        st.caption(f"Gap check: {', '.join(parts)} — see inline hints above")
+    elif "gaps" in st.session_state:
+        st.caption("✅ No gaps found")
+
     if st.session_state.get("generated_output"):
         return
 
@@ -469,17 +481,6 @@ def render_action_bar(handoff_type: str):
                     st.session_state["generating"] = True
                     st.rerun()
 
-    if gaps:
-        errors = [g for g in gaps if g["severity"] == "error"]
-        warnings = [g for g in gaps if g["severity"] == "warning"]
-        parts = []
-        if errors:
-            parts.append(f"🔴 {len(errors)} critical")
-        if warnings:
-            parts.append(f"🟡 {len(warnings)} warning{'s' if len(warnings) > 1 else ''}")
-        st.caption(f"Gap check: {', '.join(parts)} — see inline hints above")
-    elif "gaps" in st.session_state:
-        st.caption("✅ No gaps found")
 
 
 from app.pdf_export import generate_pdf as _generate_pdf
