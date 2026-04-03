@@ -1,6 +1,10 @@
 """
 Handoff document generation.
-Uses gpt-5.4-mini (API) or Ollama (local). Streams output back to Streamlit.
+
+Testing/default: gpt-5.4-mini via OpenAI SDK (or Ollama locally)
+High-quality:    claude-sonnet-4-6 via Anthropic SDK
+
+Streams output back to Streamlit.
 """
 import json
 import sys
@@ -8,6 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import config
 from llm import router
 
 _SALES_TO_CS_SYSTEM = """You are writing a professional account handoff document from a Sales rep to a Customer Success Manager.
@@ -46,22 +51,8 @@ Write in a professional but direct tone. Be specific. If a field was left blank,
 """
 
 
-def stream_handoff(handoff_type: str, form_data: dict):
-    """
-    Generator that yields text chunks as they stream from the active provider.
-    handoff_type: "sales_to_cs" or "tam_to_tam"
-    """
-    system = _SALES_TO_CS_SYSTEM if handoff_type == "sales_to_cs" else _TAM_TO_TAM_SYSTEM
-
-    prompt = f"""Here is the handoff form data:
-
-{json.dumps(form_data, indent=2)}
-
-Write the handoff document now."""
-
+def _stream_openai(system: str, prompt: str, model: str):
     client = router.get_client()
-    model = router.gen_model()
-
     stream = client.chat.completions.create(
         model=model,
         max_tokens=2048,
@@ -71,8 +62,40 @@ Write the handoff document now."""
             {"role": "user", "content": prompt},
         ],
     )
-
     for chunk in stream:
         delta = chunk.choices[0].delta.content
         if delta:
             yield delta
+
+
+def _stream_anthropic(system: str, prompt: str, model: str):
+    import anthropic
+    client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+    with client.messages.stream(
+        model=model,
+        max_tokens=2048,
+        system=system,
+        messages=[{"role": "user", "content": prompt}],
+    ) as stream:
+        for text in stream.text_stream:
+            yield text
+
+
+def stream_handoff(handoff_type: str, form_data: dict):
+    """
+    Generator that yields text chunks as they stream from the active provider.
+    handoff_type: "sales_to_cs" or "tam_to_tam"
+    """
+    system = _SALES_TO_CS_SYSTEM if handoff_type == "sales_to_cs" else _TAM_TO_TAM_SYSTEM
+    prompt = f"""Here is the handoff form data:
+
+{json.dumps(form_data, indent=2)}
+
+Write the handoff document now."""
+
+    model = router.gen_model()
+
+    if router.use_hq_gen():
+        yield from _stream_anthropic(system, prompt, model)
+    else:
+        yield from _stream_openai(system, prompt, model)

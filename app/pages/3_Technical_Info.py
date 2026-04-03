@@ -24,13 +24,13 @@ st.subheader("LLM Provider Architecture")
 import pandas as pd
 
 provider_data = {
-    "Provider": ["Ollama (local)", "OpenAI gpt-5.4-nano", "OpenAI gpt-5.4-mini", "OpenAI gpt-5.4"],
-    "Cost": ["Free", "~$0.001/call", "~$0.003/call", "~$0.015/call"],
+    "Provider": ["Ollama (local)", "OpenAI gpt-5.4-nano", "OpenAI gpt-5.4-mini", "Anthropic claude-sonnet-4-6"],
+    "Cost": ["Free", "~$0.001/call", "~$0.009/call", "~$0.030/call"],
     "Use Case": [
         "Development / zero API cost",
         "Gap detection (structured output) — always used when on API",
-        "Generation default — use during testing/development",
-        "Generation high-quality — use for demos and showcasing",
+        "Generation default — fast and cheap for testing",
+        "Generation high-quality — best narrative quality for demos",
     ],
 }
 st.dataframe(pd.DataFrame(provider_data), use_container_width=True, hide_index=True)
@@ -67,7 +67,7 @@ with col_tog:
     use_hq = st.toggle(
         "High-quality generation",
         value=hq_on,
-        help=f"Off: {config.MINI_MODEL} (~$0.003/call)  ·  On: {config.HQ_MODEL} (~$0.015/call)",
+        help=f"Off: {config.MINI_MODEL} (~$0.009/call)  ·  On: {config.HQ_MODEL} (~$0.030/call)",
     )
     os.environ["USE_HIGH_QUALITY_GEN"] = "true" if use_hq else "false"
 with col_info:
@@ -138,7 +138,13 @@ env_rows = [
         "Variable": "OPENAI_API_KEY",
         "Value": _mask(os.getenv("OPENAI_API_KEY")),
         "Default": "—",
-        "Description": "Required when USE_LOCAL_LLM=false",
+        "Description": "Required for gap detection and testing-mode generation",
+    },
+    {
+        "Variable": "ANTHROPIC_API_KEY",
+        "Value": _mask(os.getenv("ANTHROPIC_API_KEY")),
+        "Default": "—",
+        "Description": "Required for high-quality generation (claude-sonnet-4-6)",
     },
     {
         "Variable": "OLLAMA_BASE_URL",
