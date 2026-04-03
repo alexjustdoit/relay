@@ -420,6 +420,9 @@ def render_action_bar(handoff_type: str):
             st.session_state["gap_checked"] = True
         st.rerun()
 
+    if st.session_state.get("generated_output"):
+        return
+
     if st.session_state.get("_show_gap_prompt"):
         # Replace the normal buttons with the confirmation row
         st.warning(
