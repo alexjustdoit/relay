@@ -411,37 +411,13 @@ def render_action_bar(handoff_type: str):
     st.divider()
     gaps = st.session_state.get("gaps", [])
 
-    # Auto-run gap check when triggered from the "Check for Gaps" dialog button
+    # Auto-run gap check when triggered from the inline prompt
     if st.session_state.pop("_pending_gap_check", False):
         with st.spinner("Checking..."):
             gaps = detect_gaps(handoff_type, st.session_state.get("form_data", {}))
             st.session_state["gaps"] = gaps
             st.session_state["gap_checked"] = True
         st.rerun()
-
-    # "Generate Anyway" in the dialog sets this flag. Two-step: first rerun
-    # dismisses the dialog cleanly, second rerun starts generation.
-    if st.session_state.pop("_pending_generate", False):
-        st.session_state["generated_output"] = ""
-        st.session_state["generating"] = True
-        st.rerun()
-
-    @st.dialog("Check for gaps first?")
-    def _confirm_generate():
-        st.markdown(
-            "You haven't run a gap check yet. It only takes a second and helps "
-            "catch missing context before generating."
-        )
-        c1, c2 = st.columns(2)
-        with c1:
-            if st.button("Check for Gaps", type="primary", use_container_width=True):
-                st.session_state["_pending_gap_check"] = True
-                st.rerun()
-        with c2:
-            if st.button("Generate Anyway", use_container_width=True):
-                st.session_state["gap_checked"] = True
-                st.session_state["_pending_generate"] = True
-                st.rerun()
 
     col1, col2, col_spacer = st.columns([1.2, 1.8, 3])
     with col1:
@@ -456,8 +432,27 @@ def render_action_bar(handoff_type: str):
             if not config.OPENAI_API_KEY:
                 st.error("Set OPENAI_API_KEY in .env to generate handoffs.")
             elif not st.session_state.get("gap_checked"):
-                _confirm_generate()
+                st.session_state["_show_gap_prompt"] = True
+                st.rerun()
             else:
+                st.session_state["generated_output"] = ""
+                st.session_state["generating"] = True
+                st.rerun()
+
+    # Inline gap check prompt — avoids modal overlay staying open during streaming
+    if st.session_state.pop("_show_gap_prompt", False):
+        st.warning(
+            "You haven't run a gap check yet. It only takes a second and helps "
+            "catch missing context before generating."
+        )
+        pc1, pc2, _ = st.columns([1.2, 1.8, 3])
+        with pc1:
+            if st.button("Check for Gaps", key="_gap_prompt_check", use_container_width=True):
+                st.session_state["_pending_gap_check"] = True
+                st.rerun()
+        with pc2:
+            if st.button("Generate Anyway", key="_gap_prompt_generate", type="primary", use_container_width=True):
+                st.session_state["gap_checked"] = True
                 st.session_state["generated_output"] = ""
                 st.session_state["generating"] = True
                 st.rerun()
