@@ -423,7 +423,7 @@ def render_action_bar(handoff_type: str):
     def _confirm_generate():
         st.markdown(
             "You haven't run a gap check yet. It only takes a second and helps "
-            "catch missing fields before generating."
+            "catch missing context before generating."
         )
         c1, c2 = st.columns(2)
         with c1:
