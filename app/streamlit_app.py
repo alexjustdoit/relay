@@ -122,8 +122,8 @@ def home():
 
     with col1:
         st.markdown("""
-        <div class="type-card">
-            <div style="font-size:2.5rem; margin-bottom:0.75rem;">🤝</div>
+        <div style="border:2px solid #333; border-radius:12px; padding:1.5rem; text-align:center; height:230px; display:flex; flex-direction:column; justify-content:center;">
+            <div style="height:3.5rem; display:flex; align-items:center; justify-content:center; font-size:2.5rem; margin-bottom:0.75rem;">🤝</div>
             <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.4rem;">Sales → CS</div>
             <div style="font-size:0.85rem; opacity:0.7; line-height:1.4;">Hand off a new customer from Sales to Customer Success</div>
         </div>
@@ -139,8 +139,8 @@ def home():
 
     with col2:
         st.markdown("""
-        <div class="type-card">
-            <div style="font-size:2.5rem; margin-bottom:0.75rem;">🔁</div>
+        <div style="border:2px solid #333; border-radius:12px; padding:1.5rem; text-align:center; height:230px; display:flex; flex-direction:column; justify-content:center;">
+            <div style="height:3.5rem; display:flex; align-items:center; justify-content:center; font-size:2.5rem; margin-bottom:0.75rem;">🔄</div>
             <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.4rem;">TAM → TAM</div>
             <div style="font-size:0.85rem; opacity:0.7; line-height:1.4;">Transfer an existing account between Technical Account Managers</div>
         </div>
