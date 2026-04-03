@@ -20,7 +20,7 @@ DEFAULT_LOCAL_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
 NANO_MODEL  = config.NANO_MODEL
 MINI_MODEL  = config.MINI_MODEL
 HQ_MODEL    = config.HQ_MODEL
-GAP_MODEL   = config.NANO_MODEL  # gpt-5.4-nano; cheap structured task
+GAP_MODEL   = config.MINI_MODEL  # gpt-5.4-mini; nano doesn't support Chat Completions API in SDK v2
 
 
 def _ollama_url() -> str:
